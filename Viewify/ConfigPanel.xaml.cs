@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Viewify.Controls;
 using Viewify.Logic;
 
 namespace Viewify
@@ -96,9 +97,9 @@ namespace Viewify
             var rpath = path + "." + rc.Name;
 
             if (_dataExchange.TryGetValue(rc.Id, out var rid))
-                throw new InvalidDataException($"Repeated ID: #${rid} at ${rpath}");
+                throw new InvalidDataException($"Repeated ID: #${rc.Id} at ${rpath}");
             else if (_ctrlMapping.TryGetValue(rpath, out var _))
-                throw new InvalidDataException($"Repeated name: ${rpath} at #${rid}");
+                throw new InvalidDataException($"Repeated name: ${rpath} at #${rc.Id}");
 
             _ctrlMapping[rpath] = rc.Id;
             switch (rc.ParameterType)
@@ -125,6 +126,11 @@ namespace Viewify
                         foreach (var sub in rc.SubControls)
                             elemhs.Children.Add(ParseRecord(sub, rpath));
                     return elemhs;
+
+                case ParameterType.Group:
+                case ParameterType.CollapsibleGroup:
+                    var elemg = ControlUtils.MakeGroup(rc, sr => ParseRecord(sr, rpath), rc.ParameterType == ParameterType.CollapsibleGroup, rc.ControlType != ControlType.NoMargin);
+                    return elemg;
 
                 default:
                     throw new NotImplementedException();

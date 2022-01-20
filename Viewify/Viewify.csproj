@@ -80,6 +80,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ConfigPanel.xaml.cs" />
+    <Compile Include="Controls\ControlUtils.cs" />
     <Compile Include="Logic\VarRecord.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -114,10 +115,6 @@
   
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Control\" />
   </ItemGroup>
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

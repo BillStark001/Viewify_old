@@ -10,6 +10,12 @@ namespace Viewify.Logic
     public enum ParameterType
     {
         // value type
+
+        String = 0,
+        Regex = 1,
+        Enum = 2,
+        EnumVar = 3,
+
         Bool = 4, 
 
         Int = 5, 
@@ -24,20 +30,17 @@ namespace Viewify.Logic
         Mat33 = 13,
         Mat44 = 14, 
 
-        String = 0,
-        Regex = 1,
-        Enum = 2,
-        EnumVar = 3,
         // command type
         Button = 32, 
         TextField = 33, 
+        TextLabel = 34, 
 
         // layout type
         HStack = 64, 
         VStack = 65, 
         Separator = 66, 
         Group = 68, 
-        CollapsableGroup = 69, 
+        CollapsibleGroup = 69, 
     }
 
     public enum ControlType
@@ -54,7 +57,9 @@ namespace Viewify.Logic
         Radio, 
         // textfield
         MultiLine, 
-        // layout
+        // stack
+        Margin,
+        // group
         NoMargin, 
     }
 
@@ -72,6 +77,9 @@ namespace Viewify.Logic
             get { return _name; }
             set { _name = value; }
         }
+
+        [JsonProperty("dispName")]
+        public string? DisplayName { get; set; }
 
         [JsonProperty("desc")]
         public string? Description { get; set; }

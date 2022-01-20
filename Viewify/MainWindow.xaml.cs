@@ -27,13 +27,16 @@ namespace Viewify
             var c = new VarRecord()
             {
                 Name = "root",
-                ParameterType = ParameterType.VStack,
+                DisplayName = "Root", 
+                ParameterType = ParameterType.Group,
+                // ControlType = ControlType.NoMargin,
                 SubControls = new()
                 {
                     new()
                     {
                         Id = 1,
                         Name = "test1",
+                        DisplayName = "Test1 With A display Name", 
                         ParameterType = ParameterType.String,
                     },
                     new()
