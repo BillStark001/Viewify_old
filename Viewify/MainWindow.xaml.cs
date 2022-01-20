@@ -45,6 +45,14 @@ namespace Viewify
                         Name = "test2",
                         ParameterType = ParameterType.Bool,
                     },
+                    new()
+                    {
+                        Id = 114514, 
+                        Name = "dectest1", 
+                        ParameterType = ParameterType.Int, 
+                        DefaultNumber = (1000000, 114514, 1919810), 
+                        ControlType = ControlType.ScrollBar, 
+                    },
                 }
             };
             ThePanel.InputJson = VarRecordUtils.Serialize(c);

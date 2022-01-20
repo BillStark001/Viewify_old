@@ -19,8 +19,7 @@ namespace Viewify.Logic
         Bool = 4, 
 
         Int = 5, 
-        Long = 6, 
-        Double = 7, 
+        Decimal = 7, 
 
         Vec2 = 8, 
         Vec3 = 9, 
@@ -34,6 +33,7 @@ namespace Viewify.Logic
         Button = 32, 
         TextField = 33, 
         TextLabel = 34, 
+        ProgressBar = 35, 
 
         // layout type
         HStack = 64, 
@@ -47,9 +47,7 @@ namespace Viewify.Logic
     {
         Default,
         // numeric
-        ProgressBar, 
         ScrollBar, 
-        ScrollBarWithoutTextBox, 
         // vec
         Field2D, 
         // enum
@@ -87,6 +85,13 @@ namespace Viewify.Logic
         public ParameterType ParameterType { get; set; } = ParameterType.String;
         [JsonProperty("ctrlType")]
         public ControlType ControlType { get; set; } = ControlType.Default;
+
+        [JsonProperty("defStr")]
+        public string? DefaultString { get; set; }
+        [JsonProperty("defNum")]
+        public (decimal, decimal, decimal)? DefaultNumber { get; set; }
+
+
         [JsonProperty("additionalParams")]
         public SortedDictionary<string, string>? AdditionalParameters { get; set; }
         [JsonProperty("subCtrls")]

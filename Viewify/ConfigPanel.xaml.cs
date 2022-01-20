@@ -118,6 +118,12 @@ namespace Viewify
                     _dataExchange[rc.Id] = (gstr, sstr);
                     return elemstr;
 
+                case ParameterType.Int:
+                case ParameterType.Decimal:
+                    var (retid, gid, sid) = ControlUtils.MakeDecimalBox(rc);
+                    _dataExchange[rc.Id] = (gid, sid);
+                    return retid;
+
                 case ParameterType.HStack:
                 case ParameterType.VStack:
                     var elemhs = new StackPanel();
