@@ -69,7 +69,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="ConfigPanel.xaml">
+    <Page Include="Controls\ConfigPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="MainWindow.xaml">
@@ -80,7 +80,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ConfigPanel.xaml.cs" />
+    <Compile Include="Controls\ConfigPanel.xaml.cs" />
     <Compile Include="Controls\ControlUtils.cs" />
     <Compile Include="Logic\VarRecord.cs" />
     <Compile Include="MainWindow.xaml.cs">

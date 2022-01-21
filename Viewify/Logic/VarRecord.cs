@@ -45,20 +45,23 @@ namespace Viewify.Logic
 
     public enum ControlType
     {
-        Default,
+        // general
+        Default = 0b00000000,
+        IgnoreFieldInGroup = 0b00000001,
         // numeric
-        ScrollBar, 
+        ScrollBar = 0b00000010, 
         // vec
-        Field2D, 
+        Field2D = 0b00000100,
         // enum
-        List,
-        Radio, 
+        Radio = 0b00001000, 
         // textfield
-        MultiLine, 
+
         // stack
-        Margin,
+        
         // group
         NoMargin, 
+        // collapsible 
+        Expand, 
     }
 
     [JsonObject()]

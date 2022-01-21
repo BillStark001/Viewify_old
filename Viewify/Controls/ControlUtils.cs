@@ -133,7 +133,8 @@ namespace Viewify.Controls
             if (rec.SubControls != null)
                 foreach (var subRec in rec.SubControls)
                 {
-                    if (subRec.ParameterType == ParameterType.Separator)
+                    if (subRec.ParameterType == ParameterType.Separator || 
+                        subRec.ControlType == ControlType.IgnoreFieldInGroup)
                     {
                         var c1 = makeSubRec(subRec);
                         innerGroup.Children.Add(c1);

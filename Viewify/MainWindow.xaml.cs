@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Viewify.Logic;
+using Viewify.Controls;
 
 namespace Viewify
 {
@@ -44,6 +45,7 @@ namespace Viewify
                         Id = -1,
                         Name = "test2",
                         ParameterType = ParameterType.Bool,
+                        Description = "This is a checkbox.",
                     },
                     new() { ParameterType = ParameterType.Separator, },
                     new()
@@ -68,9 +70,27 @@ namespace Viewify
                     new()
                     {
                         ParameterType = ParameterType.Button,
+                        ControlType = ControlType.IgnoreFieldInGroup,
                         CommandName = "test1",
-                        Description = "これはボタンです", 
-                    }
+                        Description = "これはボタンです",
+                    },
+                    new() { ParameterType = ParameterType.Separator, },
+                    new()
+                    {
+                        Name = "anotherRoot",
+                        DisplayName = "Another Root",
+                        ParameterType = ParameterType.CollapsibleGroup,
+                        ControlType = ControlType.IgnoreFieldInGroup,
+                        SubControls =
+                        new() {
+                            new()
+                            {
+                                ControlType = ControlType.IgnoreFieldInGroup,
+                                ParameterType = ParameterType.TextField,
+                                DefaultString = "This is a multi-line test string. \n Corona team garter belt stockings.",
+                            }, 
+                        }, 
+                    }, 
                 }
             };
             ThePanel.InputJson = VarRecordUtils.Serialize(c);

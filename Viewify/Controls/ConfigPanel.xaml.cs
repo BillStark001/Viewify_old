@@ -14,10 +14,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Viewify.Controls;
+using Viewify;
 using Viewify.Logic;
 
-namespace Viewify
+namespace Viewify.Controls
 {
     /// <summary>
     /// ConfigPanel.xaml 的交互逻辑
@@ -182,6 +182,14 @@ namespace Viewify
 
                 case ParameterType.TextLabel:
                 case ParameterType.TextField:
+                    var rettxt = new TextBlock()
+                    {
+                        Text = rc.DefaultString,
+                    };
+                    Func<object?> gtxt = () => rettxt.Text;
+                    Action<object?> stxt = (x) => rettxt.Text = x != null ? (x as string ?? x.ToString()) ?? "" : "";
+                    _dataExchange[rc.Id] = (gtxt, stxt);
+                    return rettxt;
 
 
                 // layout type
