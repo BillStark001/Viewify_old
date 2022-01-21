@@ -12,6 +12,7 @@
     <StartupObject>Viewify.App</StartupObject>
     <Authors>Bill Stark</Authors>
     <Company>CoronaDevs</Company>
+    <AssemblyName>Viewify</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -82,6 +83,7 @@
     </Compile>
     <Compile Include="Controls\ConfigPanel.xaml.cs" />
     <Compile Include="Controls\ControlUtils.cs" />
+    <Compile Include="Logic\ValueUtils.cs" />
     <Compile Include="Logic\VarRecord.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

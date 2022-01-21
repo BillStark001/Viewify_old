@@ -109,21 +109,17 @@ namespace Viewify.Controls
             if (textInput is IntegerUpDown iud2)
             {
                 g = () => iud2.Value ?? (int)defdefv;
-                s = (x) => { var xi = x as int?; if (xi != null) { iud2.Value = xi; if (sb != null) sb.Value = (int)xi; } };
+                s = (x) => { var xi = ValueUtils.ParseInt(x);  iud2.Value = xi; if (sb != null) sb.Value = xi; };
             }
             else
             {
                 var nud2 = (DoubleUpDown)textInput;
                 g = () => nud2.Value ?? (double)defdefv;
-                s = (x) => { var xi = x as double?; if (xi != null) { nud2.Value = xi; if (sb != null) sb.Value = (double)xi; } };
+                s = (x) => { var xd = ValueUtils.ParseDouble(x); nud2.Value = xd; if (sb != null) sb.Value = xd;  };
             }
             return (ret, g, s);
         }
 
-        private static void Sb_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            throw new NotImplementedException();
-        }
 
         public static UIElement MakeGroup(VarRecord rec, Func<VarRecord, UIElement> makeSubRec, bool collapsible, bool withMargin)
         {
@@ -222,14 +218,11 @@ namespace Viewify.Controls
                 g = () => v;
                 s = (x) =>
                 {
-                    int? xv = x as int?;
+                    int xv = ValueUtils.ParseInt(x, v);
                     dr[v].IsChecked = false;
-                    if (xv != null)
-                        v = xv.Value;
-                    if (xv != null && dr.TryGetValue(xv.Value, out var dxv))
-                    {
+                    v = xv;
+                    if (dr.TryGetValue(xv, out var dxv))
                         dxv.IsChecked = true;
-                    }
                 };
                 ret = st;
             }
@@ -253,8 +246,8 @@ namespace Viewify.Controls
                 g = () => v;
                 s = (x) =>
                 {
-                    int? xv = x as int?;
-                    if (xv != null)
+                    int? xv = ValueUtils.ParseInt(x, v);
+                    if (xv != null) // definitely
                     {
                         v = xv.Value;
                         if (dr.TryGetValue(xv.Value, out var dxv))

@@ -113,7 +113,7 @@ namespace Viewify.Logic
         public string? DefaultString { get; set; }
         [JsonProperty("defNum")]
         public (decimal, decimal, decimal)? DefaultNumber { get; set; }
-        [JsonProperty("command")]
+        [JsonProperty("cmd")]
         public string? CommandName { get; set; }
 
 

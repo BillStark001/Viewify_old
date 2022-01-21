@@ -9,8 +9,7 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <ctrls:ConfigPanel
-            x:Name="ThePanel"
-            InputJson="231321321">
+            x:Name="ThePanel">
             
         </ctrls:ConfigPanel>
     </Grid>

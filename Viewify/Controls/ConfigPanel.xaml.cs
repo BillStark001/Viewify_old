@@ -53,6 +53,8 @@ namespace Viewify.Controls
                 {
                     _dataExchange.Clear();
                     _ctrlMapping.Clear();
+                    _dataTypes.Clear();
+                    _enumContainer.Clear();
                     BaseControl.Children.Add(ParseRecord(RootRecord));
                 }
                 else
@@ -89,20 +91,36 @@ namespace Viewify.Controls
         }
 
         private readonly Dictionary<int, (Func<object?>, Action<object?>)> _dataExchange = new(); // getter, setter
+        private readonly Dictionary<int, ParameterType> _dataTypes = new();
         private readonly Dictionary<string, Action> _oprs = new();
         private readonly Dictionary<string, int> _ctrlMapping = new();
         private readonly Dictionary<string, IEnumerable<EnumValue>> _enumFetcher = new();
+        private readonly Dictionary<string, (VarRecord, DockPanel)> _enumContainer = new();
 
         public void RegisterCommand(string name, Action cmd)
         {
             _oprs[name] = cmd;
         }
 
-        public void RegisterEnumVar(string name, IEnumerable<EnumValue> val)
+        public void RegisterEnumVar(string name, IEnumerable<EnumValue>? val)
         {
-            _enumFetcher[name] = val;
+            if (val != null)
+                _enumFetcher[name] = val;
             // TODO
+            if (_enumContainer.TryGetValue(name, out var wrapped))
+            {
+                var rc = wrapped.Item1;
+                var panel = wrapped.Item2;
+                var isRadio = rc.ControlType == ControlType.Radio;
+                panel.Children.Clear();
+                var (reten, gen, sen) = ControlUtils.MakeEnum(isRadio, _enumFetcher.GetValueOrDefault(name, new List<EnumValue>()));
+                _dataExchange[rc.Id] = (gen, sen);
+                panel.Children.Add(reten);
+            }
+            // else do nothing?
         }
+
+        // values
 
         public object? GetValue(int id)
         {
@@ -116,6 +134,64 @@ namespace Viewify.Controls
             return _ctrlMapping.TryGetValue(path, out var id) ? GetValue(id) : null;
         }
 
+        public void SetValue(int id, object? val)
+        {
+            if (_dataExchange.TryGetValue(id, out var rid))
+                rid.Item2(val);
+        }
+
+        public void SetValue(string path, object? val)
+        {
+            if (_ctrlMapping.TryGetValue(path, out var id))
+                SetValue(id, val);
+        }
+
+        public Dictionary<int, ValueRecord> GetValues()
+        {
+            Dictionary<int, ValueRecord> ans = new();
+            foreach (var (k, (g, s)) in _dataExchange)
+            {
+                var ansk = g();
+                var ptype = _dataTypes[k];
+                switch (ptype)
+                {
+                    case ParameterType.Bool:
+                        ans[k] = new() { Bool = ValueUtils.ParseBoolean(ansk) };
+                        break;
+                    case ParameterType.String:
+                    case ParameterType.Regex:
+                        ans[k] = new() { String = ValueUtils.ParseString(ansk) };
+                        break;
+                    case ParameterType.Int:
+                    case ParameterType.Enum:
+                    case ParameterType.EnumVar:
+                        ans[k] = new() { Int = ValueUtils.ParseInt(ansk) };
+                        break;
+                    case ParameterType.Decimal:
+                        ans[k] = new() { Double = ValueUtils.ParseDouble(ansk) };
+                        break;
+                    case ParameterType.TextField:
+                    case ParameterType.TextLabel:
+                        // do nothing
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+            return ans;
+        }
+
+        public void SetValues(Dictionary<int, ValueRecord> vs)
+        {
+            foreach (var (k, (g, s)) in _dataExchange)
+            {
+                vs.TryGetValue(k, out var v);
+                s(v);
+            }
+        }
+
+        // record related
+
         public UIElement ParseRecord(VarRecord rc, string path = "")
         {
             var rpath = path + "." + rc.Name;
@@ -125,6 +201,7 @@ namespace Viewify.Controls
             else if (_ctrlMapping.TryGetValue(rpath, out var _))
                 throw new InvalidDataException($"Repeated name: ${rpath} at #${rc.Id}");
 
+            _dataTypes[rc.Id] = rc.ParameterType;
             if (!string.IsNullOrEmpty(rc.Name))
                 _ctrlMapping[rpath] = rc.Id;
             switch (rc.ParameterType)
@@ -137,14 +214,14 @@ namespace Viewify.Controls
                         VerticalAlignment = VerticalAlignment.Stretch, 
                     };
                     Func<object?> gbl = () => elembl.IsChecked ?? false;
-                    Action<object?> sbl = (x) => elembl.IsChecked = (x as bool?) ?? false;
+                    Action<object?> sbl = (x) => elembl.IsChecked = ValueUtils.ParseBoolean(x);
                     _dataExchange[rc.Id] = (gbl, sbl);
                     return elembl;
 
                 case ParameterType.String:
                     var elemstr = new TextBox();
                     Func<object?> gstr = () => elemstr.Text;
-                    Action<object?> sstr = (x) => elemstr.Text = x != null ? (x as string ?? x.ToString()) ?? "" : "";
+                    Action<object?> sstr = (x) => elemstr.Text = ValueUtils.ParseString(x) ?? "";
                     _dataExchange[rc.Id] = (gstr, sstr);
                     return elemstr;
 
@@ -162,10 +239,17 @@ namespace Viewify.Controls
                     return reten;
 
                 case ParameterType.EnumVar:
-
+                    var retenv = new DockPanel();
+                    if (rc.CommandName == null)
+                        throw new InvalidDataException("A 'cmd' string field indicating the related definition of an EnumVar type is required.");
+                    _enumContainer[rc.CommandName] = (rc, retenv);
+                    RegisterEnumVar(rc.CommandName, null);
+                    return retenv;
                 // control type
 
                 case ParameterType.Button:
+                    if (rc.CommandName == null)
+                        throw new InvalidDataException("A 'cmd' string field indicating the command of a Button type is required.");
                     var retbutt = new Button()
                     {
                         Content = rc.Description ?? rc.DisplayName ?? rc.Name ?? "",
@@ -187,7 +271,7 @@ namespace Viewify.Controls
                         Text = rc.DefaultString,
                     };
                     Func<object?> gtxt = () => rettxt.Text;
-                    Action<object?> stxt = (x) => rettxt.Text = x != null ? (x as string ?? x.ToString()) ?? "" : "";
+                    Action<object?> stxt = (x) => rettxt.Text = ValueUtils.ParseString(x) ?? "";
                     _dataExchange[rc.Id] = (gtxt, stxt);
                     return rettxt;
 
