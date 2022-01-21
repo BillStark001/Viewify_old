@@ -27,7 +27,7 @@ namespace Viewify
             var c = new VarRecord()
             {
                 Name = "root",
-                DisplayName = "Root", 
+                DisplayName = "Root",
                 ParameterType = ParameterType.Group,
                 // ControlType = ControlType.NoMargin,
                 SubControls = new()
@@ -36,7 +36,7 @@ namespace Viewify
                     {
                         Id = 1,
                         Name = "test1",
-                        DisplayName = "Test1 With A display Name", 
+                        DisplayName = "Test1 With A display Name",
                         ParameterType = ParameterType.String,
                     },
                     new()
@@ -45,17 +45,40 @@ namespace Viewify
                         Name = "test2",
                         ParameterType = ParameterType.Bool,
                     },
+                    new() { ParameterType = ParameterType.Separator, },
                     new()
                     {
-                        Id = 114514, 
-                        Name = "dectest1", 
-                        ParameterType = ParameterType.Int, 
-                        DefaultNumber = (1000000, 114514, 1919810), 
-                        ControlType = ControlType.ScrollBar, 
+                        Id = 114514,
+                        Name = "dectest1",
+                        ParameterType = ParameterType.Int,
+                        DefaultNumber = (1000000, 114514, 1919810),
+                        // ControlType = ControlType.ScrollBar, 
                     },
+                    new()
+                    {
+                        Id = 2,
+                        Name = "enumtest",
+                        ParameterType = ParameterType.Enum,
+                        EnumValues = new()
+                        {
+                            new(0, "num0"),
+                            new(1, "num1"),
+                        },
+                    },
+                    new()
+                    {
+                        ParameterType = ParameterType.Button,
+                        CommandName = "test1",
+                        Description = "これはボタンです", 
+                    }
                 }
             };
             ThePanel.InputJson = VarRecordUtils.Serialize(c);
+            ThePanel.RegisterCommand("test1", () =>
+            {
+                var a = ThePanel.GetValue(".root.test1");
+                MessageBox.Show(a != null ? a.ToString() : "null");
+            });
         }
     }
 }

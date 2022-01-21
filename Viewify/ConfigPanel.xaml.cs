@@ -91,6 +91,30 @@ namespace Viewify
         private readonly Dictionary<int, (Func<object?>, Action<object?>)> _dataExchange = new(); // getter, setter
         private readonly Dictionary<string, Action> _oprs = new();
         private readonly Dictionary<string, int> _ctrlMapping = new();
+        private readonly Dictionary<string, IEnumerable<EnumValue>> _enumFetcher = new();
+
+        public void RegisterCommand(string name, Action cmd)
+        {
+            _oprs[name] = cmd;
+        }
+
+        public void RegisterEnumVar(string name, IEnumerable<EnumValue> val)
+        {
+            _enumFetcher[name] = val;
+            // TODO
+        }
+
+        public object? GetValue(int id)
+        {
+            if (_dataExchange.TryGetValue(id, out var rid))
+                return rid.Item1();
+            return null;
+        }
+
+        public object? GetValue(string path)
+        {
+            return _ctrlMapping.TryGetValue(path, out var id) ? GetValue(id) : null;
+        }
 
         public UIElement ParseRecord(VarRecord rc, string path = "")
         {
@@ -101,11 +125,17 @@ namespace Viewify
             else if (_ctrlMapping.TryGetValue(rpath, out var _))
                 throw new InvalidDataException($"Repeated name: ${rpath} at #${rc.Id}");
 
-            _ctrlMapping[rpath] = rc.Id;
+            if (!string.IsNullOrEmpty(rc.Name))
+                _ctrlMapping[rpath] = rc.Id;
             switch (rc.ParameterType)
             {
                 case ParameterType.Bool:
-                    var elembl = new CheckBox();
+                    var elembl = new CheckBox()
+                    {
+                        Height = 20,
+                        Content = rc.Description ?? rc.DisplayName ?? rc.Name ?? "",
+                        VerticalAlignment = VerticalAlignment.Stretch, 
+                    };
                     Func<object?> gbl = () => elembl.IsChecked ?? false;
                     Action<object?> sbl = (x) => elembl.IsChecked = (x as bool?) ?? false;
                     _dataExchange[rc.Id] = (gbl, sbl);
@@ -124,6 +154,38 @@ namespace Viewify
                     _dataExchange[rc.Id] = (gid, sid);
                     return retid;
 
+                // enum
+
+                case ParameterType.Enum:
+                    var (reten, gen, sen) = ControlUtils.MakeEnum(rc);
+                    _dataExchange[rc.Id] = (gen, sen);
+                    return reten;
+
+                case ParameterType.EnumVar:
+
+                // control type
+
+                case ParameterType.Button:
+                    var retbutt = new Button()
+                    {
+                        Content = rc.Description ?? rc.DisplayName ?? rc.Name ?? "",
+                        Height = 25, 
+                        HorizontalAlignment = HorizontalAlignment.Left, 
+                    };
+                    retbutt.Click += (_, __) =>
+                    {
+                        if (rc.CommandName != null && _oprs.TryGetValue(rc.CommandName, out var act))
+                            act();
+                    };
+                    return retbutt;
+
+
+                case ParameterType.TextLabel:
+                case ParameterType.TextField:
+
+
+                // layout type
+
                 case ParameterType.HStack:
                 case ParameterType.VStack:
                     var elemhs = new StackPanel();
@@ -132,6 +194,10 @@ namespace Viewify
                         foreach (var sub in rc.SubControls)
                             elemhs.Children.Add(ParseRecord(sub, rpath));
                     return elemhs;
+
+                case ParameterType.Separator:
+                    var elemsp = new Separator();
+                    return elemsp;
 
                 case ParameterType.Group:
                 case ParameterType.CollapsibleGroup:

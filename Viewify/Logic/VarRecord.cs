@@ -61,6 +61,24 @@ namespace Viewify.Logic
         NoMargin, 
     }
 
+    [JsonObject()]
+    public record EnumValue
+    {
+        public EnumValue(int v1, string v2)
+        {
+            Id = v1;
+            Description = v2;
+        }
+
+        [JsonProperty("id")]
+        public int Id { get; set; }
+        
+        [JsonProperty("desc")]
+        public string Description { get; set; } = "";
+
+        
+    }
+
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public record VarRecord
     {
@@ -86,11 +104,22 @@ namespace Viewify.Logic
         [JsonProperty("ctrlType")]
         public ControlType ControlType { get; set; } = ControlType.Default;
 
+        // vals
+
         [JsonProperty("defStr")]
         public string? DefaultString { get; set; }
         [JsonProperty("defNum")]
         public (decimal, decimal, decimal)? DefaultNumber { get; set; }
+        [JsonProperty("command")]
+        public string? CommandName { get; set; }
 
+
+        // enum related
+
+        [JsonProperty("enumVals")]
+        public List<EnumValue>? EnumValues { get; set; }
+
+        // additional
 
         [JsonProperty("additionalParams")]
         public SortedDictionary<string, string>? AdditionalParameters { get; set; }

@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Controls;
 using Xceed.Wpf.Toolkit;
+using System.IO;
 
 namespace Viewify.Controls
 {
@@ -29,7 +30,10 @@ namespace Viewify.Controls
             {
                 var iud = new IntegerUpDown()
                 {
-                    Width = 120,
+                    MinWidth = 120,
+                    MaxWidth = 200,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    Width = double.NaN, 
                 };
                 if (def != null)
                 {
@@ -45,7 +49,10 @@ namespace Viewify.Controls
             {
                 var nud = new DoubleUpDown()
                 {
-                    Width = 120,
+                    MinWidth = 120,
+                    MaxWidth = 200,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    Width = double.NaN,
                 };
                 if (def != null)
                 {
@@ -63,10 +70,12 @@ namespace Viewify.Controls
                 sb = new ScrollBar()
                 {
                     Orientation = Orientation.Horizontal,
+                    // HorizontalAlignment = HorizontalAlignment.Stretch,
                     Value = (double)defv,
                     Minimum = (double)min,
                     Maximum = (double)max,
-                    MinWidth = 100,
+                    MinWidth = 60,
+                    Height = 22, 
                 };
                 if (textInput is IntegerUpDown iud)
                 {
@@ -78,15 +87,17 @@ namespace Viewify.Controls
                     nud.ValueChanged += (_, __) => { sb.Value = nud.Value ?? (double)defv; };
                     sb.ValueChanged += (_, __) => { nud.Value = (double)sb.Value; };
                 }
-                var rets = new StackPanel()
+                var rets = new DockPanel()
                 {
-                    Orientation = Orientation.Horizontal,
+                    // Orientation = Orientation.Horizontal,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     VerticalAlignment = VerticalAlignment.Stretch,
                     Width = double.NaN,
                 };
                 rets.Children.Add(textInput);
+                textInput.SetValue(DockPanel.DockProperty, Dock.Left);
                 rets.Children.Add(sb);
+                sb.SetValue(DockPanel.DockProperty, Dock.Left);
                 ret = rets;
             }
             else
@@ -116,15 +127,38 @@ namespace Viewify.Controls
 
         public static UIElement MakeGroup(VarRecord rec, Func<VarRecord, UIElement> makeSubRec, bool collapsible, bool withMargin)
         {
-            var innerGroup = new UniformGrid();
-            innerGroup.Columns = 2;
+            var innerGroup = new Grid();
             
+            int r = 0;
             if (rec.SubControls != null)
                 foreach (var subRec in rec.SubControls)
                 {
-                    innerGroup.Children.Add(new Label() { Content = subRec.DisplayName ?? subRec.Name });
-                    innerGroup.Children.Add(makeSubRec(subRec));
+                    if (subRec.ParameterType == ParameterType.Separator)
+                    {
+                        var c1 = makeSubRec(subRec);
+                        innerGroup.Children.Add(c1);
+                        c1.SetValue(Grid.RowProperty, r);
+                        c1.SetValue(Grid.ColumnProperty, 0);
+                        c1.SetValue(Grid.ColumnSpanProperty, 2);
+                    }
+                    else
+                    {
+                        var c0 = new Label() { Content = subRec.DisplayName ?? subRec.Name };
+                        var c1 = makeSubRec(subRec);
+                        innerGroup.Children.Add(c0);
+                        innerGroup.Children.Add(c1);
+                        c0.SetValue(Grid.RowProperty, r);
+                        c0.SetValue(Grid.ColumnProperty, 0);
+                        c1.SetValue(Grid.RowProperty, r);
+                        c1.SetValue(Grid.ColumnProperty, 1);
+                    }
+                    ++r;
+                    innerGroup.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto, MinHeight = 10 });
                 }
+
+            innerGroup.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            innerGroup.ColumnDefinitions.Add(new ColumnDefinition() { MinWidth = 150 });
+
             if (!collapsible)
             {
                 if (!withMargin)
@@ -149,6 +183,89 @@ namespace Viewify.Controls
                 };
                 return ex;
             }
+        }
+
+        public static (UIElement, Func<object?>, Action<object?>) MakeEnum(VarRecord rec)
+        {
+            var isVar = rec.ParameterType == ParameterType.EnumVar;
+            var isRadio = rec.ControlType == ControlType.Radio;
+            List<EnumValue>? ev = isVar ? null : rec.EnumValues;
+            return MakeEnum(isRadio, ev);
+        }
+
+        public static (UIElement, Func<object?>, Action<object?>) MakeEnum(bool isRadio, IEnumerable<EnumValue>? enumValues)
+        {
+            List<EnumValue> ev = enumValues != null ? new(enumValues) : new();
+            if (ev.Count == 0)
+                ev.Add(new(0, ""));
+            UIElement ret;
+            Func<object?> g;
+            Action<object?> s;
+            if (isRadio)
+            {
+                StackPanel st = new();
+                int v = ev[0].Id;
+                Dictionary<int, RadioButton> dr = new();
+                foreach (var eobj in ev)
+                {
+                    var robj = new RadioButton()
+                    {
+                        Content = eobj.Description,
+                    };
+                    if (dr.TryGetValue(eobj.Id, out var _))
+                        throw new InvalidDataException($"Repeated Enum ID: #{eobj.Id}");
+                    dr[eobj.Id] = robj;
+                    st.Children.Add(robj);
+                    robj.Checked += (_, __) => v = eobj.Id;
+                }
+                g = () => v;
+                s = (x) =>
+                {
+                    int? xv = x as int?;
+                    dr[v].IsChecked = false;
+                    if (xv != null)
+                        v = xv.Value;
+                    if (xv != null && dr.TryGetValue(xv.Value, out var dxv))
+                    {
+                        dxv.IsChecked = true;
+                    }
+                };
+                ret = st;
+            }
+            else
+            {
+                ComboBox cb = new();
+                int v = ev[0].Id;
+                Dictionary<int, ComboBoxItem> dr = new();
+                foreach (var eobj in ev)
+                {
+                    var robj = new ComboBoxItem()
+                    {
+                        Content = eobj.Description,
+                    };
+                    if (dr.TryGetValue(eobj.Id, out var _))
+                        throw new InvalidDataException($"Repeated Enum ID: #{eobj.Id}");
+                    dr[eobj.Id] = robj;
+                    cb.Items.Add(robj);
+                    robj.Selected += (_, __) => v = eobj.Id;
+                }
+                g = () => v;
+                s = (x) =>
+                {
+                    int? xv = x as int?;
+                    if (xv != null)
+                    {
+                        v = xv.Value;
+                        if (dr.TryGetValue(xv.Value, out var dxv))
+                            cb.SelectedItem = dxv;
+                        else
+                            cb.SelectedItem = null;
+                    }
+                };
+                ret = cb;
+            }
+
+            return (ret, g, s);
         }
 
     }
