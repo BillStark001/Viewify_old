@@ -41,6 +41,7 @@ namespace Viewify.Logic
         Separator = 66, 
         Group = 68, 
         CollapsibleGroup = 69, 
+        Pages = 70, 
     }
 
     public enum ControlType
@@ -62,6 +63,8 @@ namespace Viewify.Logic
         NoMargin, 
         // collapsible 
         Expand, 
+        // pages
+
     }
 
     [JsonObject()]
