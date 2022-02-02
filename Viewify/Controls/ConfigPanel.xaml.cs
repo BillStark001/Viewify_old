@@ -53,6 +53,7 @@ namespace Viewify.Controls
                 {
                     _dataExchange.Clear();
                     _ctrlMapping.Clear();
+                    _reverseCtrlMapping.Clear();
                     _dataTypes.Clear();
                     _enumContainer.Clear();
                     BaseControl.Children.Add(ParseRecord(RootRecord));
@@ -94,6 +95,7 @@ namespace Viewify.Controls
         private readonly Dictionary<int, ParameterType> _dataTypes = new();
         private readonly Dictionary<string, Action> _oprs = new();
         private readonly Dictionary<string, int> _ctrlMapping = new();
+        private readonly Dictionary<int, string> _reverseCtrlMapping = new();
         private readonly Dictionary<string, IEnumerable<EnumValue>> _enumFetcher = new();
         private readonly Dictionary<string, (VarRecord, DockPanel)> _enumContainer = new();
 
@@ -197,13 +199,18 @@ namespace Viewify.Controls
             var rpath = path + "." + rc.Name;
 
             if (_dataExchange.TryGetValue(rc.Id, out var rid))
-                throw new InvalidDataException($"Repeated ID: #${rc.Id} at ${rpath}");
+                throw new InvalidDataException($"Repeated ID: #{rc.Id} at {rc.ParameterType}${rpath} & {_dataTypes[rc.Id]}${_reverseCtrlMapping[rc.Id]}");
             else if (_ctrlMapping.TryGetValue(rpath, out var _))
-                throw new InvalidDataException($"Repeated name: ${rpath} at #${rc.Id}");
+                throw new InvalidDataException($"Repeated name: {rc.ParameterType}${rpath} at #{rc.Id}");
 
             _dataTypes[rc.Id] = rc.ParameterType;
+            _reverseCtrlMapping[rc.Id] = rpath;
             if (!string.IsNullOrEmpty(rc.Name))
+            {
                 _ctrlMapping[rpath] = rc.Id;
+                
+            }
+                
             switch (rc.ParameterType)
             {
                 case ParameterType.Bool:
@@ -268,11 +275,14 @@ namespace Viewify.Controls
                 case ParameterType.TextField:
                     var rettxt = new TextBlock()
                     {
-                        Text = rc.DefaultString,
+                        Text = rc.DefaultString ?? rc.Description ?? rc.DisplayName ?? rc.Name ?? "",
                     };
-                    Func<object?> gtxt = () => rettxt.Text;
-                    Action<object?> stxt = (x) => rettxt.Text = ValueUtils.ParseString(x) ?? "";
-                    _dataExchange[rc.Id] = (gtxt, stxt);
+                    if (rc.ControlType == ControlType.WithEditor)
+                    {
+                        Func<object?> gtxt = () => rettxt.Text;
+                        Action<object?> stxt = (x) => rettxt.Text = ValueUtils.ParseString(x) ?? "";
+                        _dataExchange[rc.Id] = (gtxt, stxt);
+                    }
                     return rettxt;
 
 
@@ -285,6 +295,14 @@ namespace Viewify.Controls
                     if (rc.SubControls != null)
                         foreach (var sub in rc.SubControls)
                             elemhs.Children.Add(ParseRecord(sub, rpath));
+                    if (rc.ControlType == ControlType.WithMargin)
+                    {
+                        return new GroupBox()
+                        {
+                            Content = elemhs, 
+                            Header = rc.DisplayName, 
+                        };
+                    }
                     return elemhs;
 
                 case ParameterType.Separator:

@@ -55,10 +55,12 @@ namespace Viewify.Logic
         Field2D = 0b00000100,
         // enum
         Radio = 0b00001000, 
-        // textfield
+
+        // textfield & textlabel
+        WithEditor, 
 
         // stack
-        
+        WithMargin, 
         // group
         NoMargin, 
         // collapsible 

@@ -3,11 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Viewify1", "Viewify1\Viewify1.csproj", "{73EE818C-7815-4BF6-8E64-C582DBFBFED8}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Viewify.Test", "Viewify.Test\Viewify.Test.csproj", "{6B81B94C-AA2A-40E3-91D2-058B912566D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Viewify", "Viewify\Viewify.csproj", "{ED0C7E8A-E1C4-4EE1-810F-A190FB4C4907}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Viewify", "Viewify\Viewify.csproj", "{ED0C7E8A-E1C4-4EE1-810F-A190FB4C4907}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,18 +17,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{73EE818C-7815-4BF6-8E64-C582DBFBFED8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{73EE818C-7815-4BF6-8E64-C582DBFBFED8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{73EE818C-7815-4BF6-8E64-C582DBFBFED8}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{73EE818C-7815-4BF6-8E64-C582DBFBFED8}.Debug|x64.Build.0 = Debug|Any CPU
-		{73EE818C-7815-4BF6-8E64-C582DBFBFED8}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{73EE818C-7815-4BF6-8E64-C582DBFBFED8}.Debug|x86.Build.0 = Debug|Any CPU
-		{73EE818C-7815-4BF6-8E64-C582DBFBFED8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{73EE818C-7815-4BF6-8E64-C582DBFBFED8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{73EE818C-7815-4BF6-8E64-C582DBFBFED8}.Release|x64.ActiveCfg = Release|Any CPU
-		{73EE818C-7815-4BF6-8E64-C582DBFBFED8}.Release|x64.Build.0 = Release|Any CPU
-		{73EE818C-7815-4BF6-8E64-C582DBFBFED8}.Release|x86.ActiveCfg = Release|Any CPU
-		{73EE818C-7815-4BF6-8E64-C582DBFBFED8}.Release|x86.Build.0 = Release|Any CPU
 		{6B81B94C-AA2A-40E3-91D2-058B912566D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6B81B94C-AA2A-40E3-91D2-058B912566D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B81B94C-AA2A-40E3-91D2-058B912566D8}.Debug|x64.ActiveCfg = Debug|Any CPU

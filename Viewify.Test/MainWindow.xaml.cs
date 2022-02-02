@@ -29,90 +29,80 @@ namespace Viewify
             var c = new VarRecord()
             {
                 Name = "root",
-                DisplayName = "Root",
-                ParameterType = ParameterType.Group,
-                // ControlType = ControlType.NoMargin,
+                DisplayName = "Mod Build",
+                ParameterType = ParameterType.VStack,
+                ControlType = ControlType.WithMargin,
                 SubControls = new()
                 {
                     new()
                     {
                         Id = 1,
-                        Name = "test1",
-                        DisplayName = "Test1 With A display Name",
-                        ParameterType = ParameterType.String,
+                        Name = "modToBuild",
+                        ParameterType = ParameterType.EnumVar,
+                        CommandName = "getModToBuild", 
                     },
                     new()
                     {
-                        Id = -1,
-                        Name = "test2",
-                        ParameterType = ParameterType.Bool,
-                        Description = "This is a checkbox.",
-                    },
-                    new() { ParameterType = ParameterType.Separator, },
-                    new()
-                    {
-                        Id = 114514,
-                        Name = "dectest1",
-                        ParameterType = ParameterType.Int,
-                        DefaultNumber = (1000000, 114514, 1919810),
-                        // ControlType = ControlType.ScrollBar, 
-                    },
-                    new()
-                    {
-                        Id = 2,
-                        Name = "enumtest",
-                        ParameterType = ParameterType.Enum,
-                        EnumValues = new()
+                        Name = "options", 
+                        DisplayName = "Options",
+                        ParameterType = ParameterType.VStack,
+                        ControlType = ControlType.WithMargin,
+                        SubControls = new()
                         {
-                            new(0, "num0"),
-                            new(1, "num1"),
-                        },
-                    },
-                    new()
-                    {
-                        Id = 22,
-                        Name = "enumtest2",
-                        ParameterType = ParameterType.Enum,
-                        ControlType = ControlType.Radio, 
-                        EnumValues = new()
-                        {
-                            new(0, "num0"),
-                            new(1, "num1"),
-                        },
-                    },
-                    new()
-                    {
-                        Id = 23, 
-                        Name = "enumvartest", 
-                        CommandName = "testEnumVar", 
-                        ParameterType = ParameterType.EnumVar, 
-                        ControlType = ControlType.Radio
-                    }, 
-                    new()
-                    {
-                        ParameterType = ParameterType.Button,
-                        ControlType = ControlType.IgnoreFieldInGroup,
-                        CommandName = "test1",
-                        Description = "これはボタンです",
-                    },
-                    new() { ParameterType = ParameterType.Separator, },
-                    new()
-                    {
-                        Name = "anotherRoot",
-                        DisplayName = "Another Root",
-                        ParameterType = ParameterType.CollapsibleGroup,
-                        ControlType = ControlType.IgnoreFieldInGroup,
-                        SubControls =
-                        new() {
+                            new() { Id = 16, Name = "clearModCache", ParameterType = ParameterType.Bool, Description = "01. Clear Mod Cache", },
+                            new() { Id = 17, Name = "clearCache", ParameterType = ParameterType.Bool, Description = "02. Clear Cache", },
+
+                            new() { Id = 18, Name = "buildAptUi", ParameterType = ParameterType.Bool, Description = "03. Build Apt UI File", },
+                            new() { Id = 19, Name = "buildGlobalData", ParameterType = ParameterType.Bool, Description = "04. Clear Mod Cache", },
+                            new() { Id = 20, Name = "buildEssentialData", ParameterType = ParameterType.Bool, Description = "05. Clear Mod Cache", },
+                            new() { Id = 21, Name = "mergeAssets", ParameterType = ParameterType.Bool, Description = "06. Clear Mod Cache", },
+                            new() { Id = 22, Name = "fixNeutralAssets", ParameterType = ParameterType.Bool, Description = "07. Clear Mod Cache", },
+
+                            new() { Id = 23, Name = "copyAdditionalFiles", ParameterType = ParameterType.Bool, Description = "08. Clear Mod Cache", },
+                            new() { Id = 24, Name = "buildBig", ParameterType = ParameterType.Bool, Description = "09. Clear Mod Cache", },
+                            new() { Id = 25, Name = "buildSkudef", ParameterType = ParameterType.Bool, Description = "10. Clear Mod Cache", },
+
+                            new() { Id = 26, Name = "buildFullScreenIni", ParameterType = ParameterType.Bool, Description = "11. Clear Mod Cache", },
+                            new() { Id = 27, Name = "buildWindowModeIni", ParameterType = ParameterType.Bool, Description = "12. Clear Mod Cache", },
+
                             new()
                             {
-                                Name = "f1", 
-                                Id = 321412, 
-                                ControlType = ControlType.IgnoreFieldInGroup,
-                                ParameterType = ParameterType.TextField,
-                                DefaultString = "This is a multi-line test string. \n Corona team garter belt stockings.",
-                            }, 
+                                DisplayName = "Mod Version: ",
+                                ParameterType = ParameterType.TextLabel,
+                            },
+                            new()
+                            {
+                                Id = 2,
+                                Name = "modVersion",
+                                ParameterType = ParameterType.String,
+                            },
+                            new()
+                            {
+                                DisplayName = "Skudef Name: ",
+                                ParameterType = ParameterType.TextLabel,
+                            },
+                            new()
+                            {
+                                Id = 3,
+                                Name = "skudefName",
+                                ParameterType = ParameterType.String,
+                            },
                         }, 
+                    }, 
+
+                    new()
+                    {
+                        ParameterType = ParameterType.TextLabel, 
+                        Description = "test1\ntest2\ntest3\ntest4"
+                    }, 
+
+                    new()
+                    {
+                        Name = "buildMod", 
+                        Id = 8, 
+                        ParameterType = ParameterType.Button, 
+                        DisplayName = "Build Mod", 
+                        CommandName = "buildMod", 
                     }, 
                 }
             };

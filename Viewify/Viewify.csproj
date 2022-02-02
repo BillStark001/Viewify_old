@@ -9,6 +9,8 @@
 	<Company>CoronaDevs</Company>
 	<AssemblyName>Viewify</AssemblyName>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<FileVersion></FileVersion>
+	<Version>0.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
