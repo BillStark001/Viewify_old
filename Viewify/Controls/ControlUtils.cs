@@ -17,6 +17,23 @@ namespace Viewify.Controls
     public static class ControlUtils
     {
         
+        public static string PathCombine(string parent, string? child)
+        {
+            if (parent == null)
+                parent = string.Empty;
+            if (child == null)
+                child = string.Empty;
+
+            if (parent.Contains(' ') || child.Contains(' '))
+                throw new InvalidOperationException("Spaces are not allowed in a path.");
+
+            if (string.IsNullOrWhiteSpace(parent))
+                return child;
+            if (string.IsNullOrWhiteSpace(child))
+                child = "#EMPTY";
+            return parent + '.' + child;
+        }
+
         public static (UIElement, Func<object?>, Action<object?>) MakeDecimalBox(VarRecord rec, uint numDigit = 0)
         {
             var withBar = rec.ControlType == ControlType.ScrollBar;
@@ -190,37 +207,40 @@ namespace Viewify.Controls
             return MakeEnum(isRadio, ev);
         }
 
-        public static (UIElement, Func<object?>, Action<object?>) MakeEnum(bool isRadio, IEnumerable<EnumValue>? enumValues)
+        public static (UIElement, Func<object?>, Action<object?>) MakeEnum(bool isRadio, IEnumerable<EnumValue>? enumValuesIn)
         {
-            List<EnumValue> ev = enumValues != null ? new(enumValues) : new();
-            if (ev.Count == 0)
-                ev.Add(new(0, ""));
+            List<EnumValue> enumValues = enumValuesIn != null ? new(enumValuesIn) : new();
+            if (enumValues.Count == 0)
+                enumValues.Add(new(0, ""));
+
             UIElement ret;
-            Func<object?> g;
-            Action<object?> s;
+            int currentId = enumValues[0].Id;
+            Func<object?> getterFunc = () => currentId;
+            Action<object?> setterFunc;
+
             if (isRadio)
             {
                 StackPanel st = new();
-                int v = ev[0].Id;
+                
                 Dictionary<int, RadioButton> dr = new();
-                foreach (var eobj in ev)
+                foreach (var eobj in enumValues)
                 {
                     var robj = new RadioButton()
                     {
-                        Content = eobj.Description,
+                        Content = eobj.Description ?? eobj.StringKey ?? $"#{eobj.Id}",
+                        Height = 20,
                     };
                     if (dr.TryGetValue(eobj.Id, out var _))
                         throw new InvalidDataException($"Repeated Enum ID: #{eobj.Id}");
                     dr[eobj.Id] = robj;
                     st.Children.Add(robj);
-                    robj.Checked += (_, __) => v = eobj.Id;
+                    robj.Checked += (_, __) => currentId = eobj.Id;
                 }
-                g = () => v;
-                s = (x) =>
+                setterFunc = (x) =>
                 {
-                    int xv = ValueUtils.ParseInt(x, v);
-                    dr[v].IsChecked = false;
-                    v = xv;
+                    int xv = ValueUtils.ParseInt(x, currentId);
+                    dr[currentId].IsChecked = false;
+                    currentId = xv;
                     if (dr.TryGetValue(xv, out var dxv))
                         dxv.IsChecked = true;
                 };
@@ -229,37 +249,32 @@ namespace Viewify.Controls
             else
             {
                 ComboBox cb = new();
-                int v = ev[0].Id;
                 Dictionary<int, ComboBoxItem> dr = new();
-                foreach (var eobj in ev)
+                foreach (var eobj in enumValues)
                 {
-                    var robj = new ComboBoxItem()
+                    var cobj = new ComboBoxItem()
                     {
-                        Content = eobj.Description,
+                        Content = eobj.Description ?? eobj.StringKey ?? $"#{eobj.Id}",
                     };
                     if (dr.TryGetValue(eobj.Id, out var _))
                         throw new InvalidDataException($"Repeated Enum ID: #{eobj.Id}");
-                    dr[eobj.Id] = robj;
-                    cb.Items.Add(robj);
-                    robj.Selected += (_, __) => v = eobj.Id;
+                    dr[eobj.Id] = cobj;
+                    cb.Items.Add(cobj);
+                    cobj.Selected += (_, __) => currentId = eobj.Id;
                 }
-                g = () => v;
-                s = (x) =>
+                setterFunc = (x) =>
                 {
-                    int? xv = ValueUtils.ParseInt(x, v);
-                    if (xv != null) // definitely
-                    {
-                        v = xv.Value;
-                        if (dr.TryGetValue(xv.Value, out var dxv))
-                            cb.SelectedItem = dxv;
-                        else
-                            cb.SelectedItem = null;
-                    }
+                    int? xv = ValueUtils.ParseInt(x, currentId);
+                    currentId = xv.Value;
+                    if (dr.TryGetValue(xv.Value, out var dxv))
+                        cb.SelectedItem = dxv;
+                    else
+                        cb.SelectedItem = null;
                 };
                 ret = cb;
             }
-
-            return (ret, g, s);
+            setterFunc(currentId);
+            return (ret, getterFunc, setterFunc);
         }
 
     }

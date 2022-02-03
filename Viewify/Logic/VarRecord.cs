@@ -17,8 +17,9 @@ namespace Viewify.Logic
         EnumVar = 3,
 
         Bool = 4, 
+        EnumBool = 5, // boolean radiobutton etc.
 
-        Int = 5, 
+        Int = 6, 
         Decimal = 7, 
 
         Vec2 = 8, 
@@ -41,50 +42,60 @@ namespace Viewify.Logic
         Separator = 66, 
         Group = 68, 
         CollapsibleGroup = 69, 
-        Pages = 70, 
+        TabView = 70, 
     }
 
     public enum ControlType
     {
         // general
-        Default = 0b00000000,
-        IgnoreFieldInGroup = 0b00000001,
+        Default = 0,
+        IgnoreFieldInGroup = 1 << 0,
         // numeric
-        ScrollBar = 0b00000010, 
+        ScrollBar = 1 << 1, 
         // vec
-        Field2D = 0b00000100,
-        // enum
-        Radio = 0b00001000, 
+        Field2D = 1 << 2,
+        // enum & enumvar
+        Radio = 1 << 3, 
 
         // textfield & textlabel
-        WithEditor, 
+        WithEditor = 1 << 8, 
 
         // stack
-        WithMargin, 
+        WithMargin = 1 << 9, 
         // group
-        NoMargin, 
+        NoMargin = 1 << 10, 
         // collapsible 
-        Expand, 
-        // pages
-
+        Expand = 1 << 11, 
+        // tabview
+        
     }
 
-    [JsonObject()]
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public record EnumValue
     {
+        public EnumValue() { }
+
         public EnumValue(int v1, string v2)
         {
             Id = v1;
             Description = v2;
         }
 
+        public EnumValue(int v1, string v2, string v3)
+        {
+            Id = v1;
+            StringKey = v2;
+            Description = v3;
+        }
+
         [JsonProperty("id")]
         public int Id { get; set; }
         
-        [JsonProperty("desc")]
-        public string Description { get; set; } = "";
+        [JsonProperty("strKey")]
+        public string? StringKey { get; set; }
 
-        
+        [JsonProperty("desc")]
+        public string? Description { get; set; }
     }
 
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]

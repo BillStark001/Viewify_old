@@ -66,7 +66,7 @@ namespace Viewify.Controls
                     });
                 }
             }
-            catch (Exception e)
+            catch (FileNotFoundException e)
             {
                 Trace.WriteLine("An error occured while refreshing the panel:");
                 Trace.WriteLine(e);
@@ -104,7 +104,7 @@ namespace Viewify.Controls
             _oprs[name] = cmd;
         }
 
-        public void RegisterEnumVar(string name, IEnumerable<EnumValue>? val)
+        public void RegisterEnumVar(string name, IEnumerable<EnumValue>? val, string? rpath = null, bool ignoreCheck = true)
         {
             if (val != null)
                 _enumFetcher[name] = val;
@@ -116,7 +116,8 @@ namespace Viewify.Controls
                 var isRadio = rc.ControlType == ControlType.Radio;
                 panel.Children.Clear();
                 var (reten, gen, sen) = ControlUtils.MakeEnum(isRadio, _enumFetcher.GetValueOrDefault(name, new List<EnumValue>()));
-                _dataExchange[rc.Id] = (gen, sen);
+                TryRegisterNewData(rc.Id, rpath, rc.ParameterType, gen, sen, ignoreCheck);
+                // _dataExchange[rc.Id] = (gen, sen);
                 panel.Children.Add(reten);
             }
             // else do nothing?
@@ -158,6 +159,7 @@ namespace Viewify.Controls
                 switch (ptype)
                 {
                     case ParameterType.Bool:
+                    case ParameterType.EnumBool:
                         ans[k] = new() { Bool = ValueUtils.ParseBoolean(ansk) };
                         break;
                     case ParameterType.String:
@@ -194,22 +196,35 @@ namespace Viewify.Controls
 
         // record related
 
+        public void TryRegisterNewData(int id, string? rpath, ParameterType type, Func<object?> getter, Action<object?> setter, bool ignoreCheck = false)
+        {
+            // check conflict
+            if (ignoreCheck)
+                ignoreCheck = true; // do nothing
+            else if (_dataExchange.ContainsKey(id))
+                throw new InvalidDataException($"Repeated ID: #{id} at {type}${rpath} & {_dataTypes[id]}${(_reverseCtrlMapping.TryGetValue(id, out var n) ? n : "[Anonymous]")}");
+            else if (!string.IsNullOrWhiteSpace(rpath) && _ctrlMapping.TryGetValue(rpath, out var rid))
+                throw new InvalidDataException($"Repeated name: {type}${rpath} at #{id} & #{rid}");
+
+            _dataTypes[id] = type;
+            if (!string.IsNullOrWhiteSpace(rpath))
+            {
+                _ctrlMapping[rpath] = id;
+                _reverseCtrlMapping[id] = rpath;
+            }
+
+            _dataExchange[id] = (getter, setter);
+        }
+
         public UIElement ParseRecord(VarRecord rc, string path = "")
         {
-            var rpath = path + "." + rc.Name;
+            var rpath = ControlUtils.PathCombine(path, rc.Name);
 
-            if (_dataExchange.TryGetValue(rc.Id, out var rid))
-                throw new InvalidDataException($"Repeated ID: #{rc.Id} at {rc.ParameterType}${rpath} & {_dataTypes[rc.Id]}${_reverseCtrlMapping[rc.Id]}");
-            else if (_ctrlMapping.TryGetValue(rpath, out var _))
-                throw new InvalidDataException($"Repeated name: {rc.ParameterType}${rpath} at #{rc.Id}");
+            Func<object?>? g = null;
+            Action<object?>? s = null;
+            bool doRegister = false;
+            UIElement? ret = null;
 
-            _dataTypes[rc.Id] = rc.ParameterType;
-            _reverseCtrlMapping[rc.Id] = rpath;
-            if (!string.IsNullOrEmpty(rc.Name))
-            {
-                _ctrlMapping[rpath] = rc.Id;
-                
-            }
                 
             switch (rc.ParameterType)
             {
@@ -220,38 +235,76 @@ namespace Viewify.Controls
                         Content = rc.Description ?? rc.DisplayName ?? rc.Name ?? "",
                         VerticalAlignment = VerticalAlignment.Stretch, 
                     };
-                    Func<object?> gbl = () => elembl.IsChecked ?? false;
-                    Action<object?> sbl = (x) => elembl.IsChecked = ValueUtils.ParseBoolean(x);
-                    _dataExchange[rc.Id] = (gbl, sbl);
-                    return elembl;
+                    g = () => elembl.IsChecked ?? false;
+                    s = (x) => elembl.IsChecked = ValueUtils.ParseBoolean(x);
+                    doRegister = true;
+                    ret = elembl;
+                    break;
 
                 case ParameterType.String:
                     var elemstr = new TextBox();
-                    Func<object?> gstr = () => elemstr.Text;
-                    Action<object?> sstr = (x) => elemstr.Text = ValueUtils.ParseString(x) ?? "";
-                    _dataExchange[rc.Id] = (gstr, sstr);
-                    return elemstr;
+                    g = () => elemstr.Text;
+                    s = (x) => elemstr.Text = ValueUtils.ParseString(x) ?? "";
+                    doRegister = true;
+                    ret = elemstr;
+                    break;
 
                 case ParameterType.Int:
                 case ParameterType.Decimal:
                     var (retid, gid, sid) = ControlUtils.MakeDecimalBox(rc);
-                    _dataExchange[rc.Id] = (gid, sid);
-                    return retid;
+                    g = gid;
+                    s = sid;
+                    doRegister = true;
+                    ret = retid;
+                    break;
 
                 // enum
 
                 case ParameterType.Enum:
+                case ParameterType.EnumBool:
                     var (reten, gen, sen) = ControlUtils.MakeEnum(rc);
-                    _dataExchange[rc.Id] = (gen, sen);
-                    return reten;
+                    if (rc.ParameterType == ParameterType.EnumBool && rc.EnumValues != null)
+                    {
+                        foreach (var ev in rc.EnumValues)
+                        {
+
+                            TryRegisterNewData(
+                                ev.Id,
+                                ControlUtils.PathCombine(path, ev.StringKey ?? $"#ID{ev.Id}"), 
+                                rc.ParameterType, 
+                                () =>
+                                {
+                                    return ValueUtils.ParseInt(gen()) == ev.Id;
+                                }, 
+                                (x) =>
+                                {
+                                    if (ValueUtils.ParseBoolean(x))
+                                        sen(ev.Id);
+                                    else
+                                        sen(null);
+                                }
+                                );
+                        }
+                    }
+                    else
+                    {
+                        g = gen;
+                        s = sen;
+                        doRegister = true;
+                    }
+                    ret = reten;
+                    break;
 
                 case ParameterType.EnumVar:
                     var retenv = new DockPanel();
                     if (rc.CommandName == null)
                         throw new InvalidDataException("A 'cmd' string field indicating the related definition of an EnumVar type is required.");
                     _enumContainer[rc.CommandName] = (rc, retenv);
-                    RegisterEnumVar(rc.CommandName, null);
-                    return retenv;
+                    RegisterEnumVar(rc.CommandName, null, rpath, false);
+                    ret = retenv;
+                    break;
+                
+
                 // control type
 
                 case ParameterType.Button:
@@ -268,7 +321,8 @@ namespace Viewify.Controls
                         if (rc.CommandName != null && _oprs.TryGetValue(rc.CommandName, out var act))
                             act();
                     };
-                    return retbutt;
+                    ret = retbutt;
+                    break;
 
 
                 case ParameterType.TextLabel:
@@ -279,11 +333,12 @@ namespace Viewify.Controls
                     };
                     if (rc.ControlType == ControlType.WithEditor)
                     {
-                        Func<object?> gtxt = () => rettxt.Text;
-                        Action<object?> stxt = (x) => rettxt.Text = ValueUtils.ParseString(x) ?? "";
-                        _dataExchange[rc.Id] = (gtxt, stxt);
+                        g = () => rettxt.Text;
+                        s = (x) => rettxt.Text = ValueUtils.ParseString(x) ?? "";
+                        doRegister = true;
                     }
-                    return rettxt;
+                    ret = rettxt;
+                    break;
 
 
                 // layout type
@@ -297,26 +352,35 @@ namespace Viewify.Controls
                             elemhs.Children.Add(ParseRecord(sub, rpath));
                     if (rc.ControlType == ControlType.WithMargin)
                     {
-                        return new GroupBox()
+                        ret = new GroupBox()
                         {
-                            Content = elemhs, 
-                            Header = rc.DisplayName, 
+                            Content = elemhs,
+                            Header = rc.DisplayName,
                         };
                     }
-                    return elemhs;
+                    else
+                        ret = elemhs;
+                    break;
 
                 case ParameterType.Separator:
-                    var elemsp = new Separator();
-                    return elemsp;
+                    ret = new Separator();
+                    break;
 
                 case ParameterType.Group:
                 case ParameterType.CollapsibleGroup:
-                    var elemg = ControlUtils.MakeGroup(rc, sr => ParseRecord(sr, rpath), rc.ParameterType == ParameterType.CollapsibleGroup, rc.ControlType != ControlType.NoMargin);
-                    return elemg;
+                    ret = ControlUtils.MakeGroup(rc, sr => ParseRecord(sr, rpath), rc.ParameterType == ParameterType.CollapsibleGroup, rc.ControlType != ControlType.NoMargin);
+                    break;
 
                 default:
                     throw new NotImplementedException();
             }
+
+            if (ret == null || (doRegister && (g == null || s == null)))
+                throw new InvalidOperationException();
+            if (doRegister)
+                TryRegisterNewData(rc.Id, rpath, rc.ParameterType, g!, s!);
+           
+            return ret;
             
         }
 

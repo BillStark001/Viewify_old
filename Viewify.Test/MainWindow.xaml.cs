@@ -53,9 +53,23 @@ namespace Viewify
                             new() { Id = 17, Name = "clearCache", ParameterType = ParameterType.Bool, Description = "02. Clear Cache", },
 
                             new() { Id = 18, Name = "buildAptUi", ParameterType = ParameterType.Bool, Description = "03. Build Apt UI File", },
+                            new()
+                            {
+                                ParameterType = ParameterType.EnumBool, 
+                                ControlType = ControlType.Radio, 
+                                EnumValues = new()
+                                {
+                                    new(-1, "doNothing", "Do Nothing"), 
+                                    new(19, "buildGlobalData", "04. Build Global Data"),
+                                    new(20, "buildEssentialData", "05. Build Essential Data"),
+                                    new(21, "mergeAssets", "06. Merge Assets"),
+                                }
+                            }, 
+                            /*
                             new() { Id = 19, Name = "buildGlobalData", ParameterType = ParameterType.Bool, Description = "04. Clear Mod Cache", },
                             new() { Id = 20, Name = "buildEssentialData", ParameterType = ParameterType.Bool, Description = "05. Clear Mod Cache", },
                             new() { Id = 21, Name = "mergeAssets", ParameterType = ParameterType.Bool, Description = "06. Clear Mod Cache", },
+                            */
                             new() { Id = 22, Name = "fixNeutralAssets", ParameterType = ParameterType.Bool, Description = "07. Clear Mod Cache", },
 
                             new() { Id = 23, Name = "copyAdditionalFiles", ParameterType = ParameterType.Bool, Description = "08. Clear Mod Cache", },
@@ -110,14 +124,14 @@ namespace Viewify
             Trace.WriteLine(cs);
             var c2 = VarRecordUtils.Deserialize(cs);
             ThePanel.InputJson = cs;
-            ThePanel.RegisterEnumVar("testEnumVar", new List<EnumValue>()
+            ThePanel.RegisterEnumVar("getModToBuild", new List<EnumValue>()
             {
                 new(114, "114"), 
                 new(514, "514"), 
                 new(1919, "1919"), 
                 new(810, "810")
             });
-            ThePanel.RegisterCommand("test1", () =>
+            ThePanel.RegisterCommand("buildMod", () =>
             {
                 var a = ThePanel.GetValue(".root.test1");
                 MessageBox.Show(a != null ? a.ToString() : "null");
