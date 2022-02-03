@@ -29,11 +29,14 @@ namespace Viewify.Controls
                 "InputJson", typeof(string), typeof(ConfigPanel),
                 new((d, e) => {
                     var thisVar = d as ConfigPanel;
-                    // var tjson = thisVar != null ? thisVar.InputJson : null;
                     if (thisVar != null)
                         thisVar.Refresh();
                 })
             );
+
+        /// <summary>
+        /// requires manual refresh
+        /// </summary>
         public string? InputJson
         {
             get { return (string?) GetValue(InputJsonProperty); }
@@ -232,7 +235,7 @@ namespace Viewify.Controls
                     var elembl = new CheckBox()
                     {
                         Height = 20,
-                        Content = rc.Description ?? rc.DisplayName ?? rc.Name ?? "",
+                        Content = rc.TryLocalizeDescription(),
                         VerticalAlignment = VerticalAlignment.Stretch, 
                     };
                     g = () => elembl.IsChecked ?? false;
@@ -312,7 +315,7 @@ namespace Viewify.Controls
                         throw new InvalidDataException("A 'cmd' string field indicating the command of a Button type is required.");
                     var retbutt = new Button()
                     {
-                        Content = rc.Description ?? rc.DisplayName ?? rc.Name ?? "",
+                        Content = rc.TryLocalizeDescription(),
                         Height = 25, 
                         HorizontalAlignment = HorizontalAlignment.Left, 
                     };
@@ -329,7 +332,7 @@ namespace Viewify.Controls
                 case ParameterType.TextField:
                     var rettxt = new TextBlock()
                     {
-                        Text = rc.DefaultString ?? rc.Description ?? rc.DisplayName ?? rc.Name ?? "",
+                        Text = rc.TryLocalizeDescription(),
                     };
                     if (rc.ControlType == ControlType.WithEditor)
                     {

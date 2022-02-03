@@ -120,10 +120,18 @@ namespace Viewify
                     }, 
                 }
             };
+
+            // Language_Flush(1);
+
             var cs = VarRecordUtils.Serialize(c);
             Trace.WriteLine(cs);
             var c2 = VarRecordUtils.Deserialize(cs);
             ThePanel.InputJson = cs;
+
+
+            
+
+
             ThePanel.RegisterEnumVar("getModToBuild", new List<EnumValue>()
             {
                 new(114, "114"), 
@@ -142,5 +150,26 @@ namespace Viewify
                 ThePanel.SetValues(vs);
             });
         }
+
+        public static void Language_Flush(int new_lang_index)
+        {
+            ResourceDictionary langRd = new()
+            {
+                Source = new Uri($"E:\\Programs\\Viewify\\Viewify.Test\\bin\\Debug\\net5.0-windows/1.xaml", UriKind.Absolute)
+            };
+            ResourceDictionary rd = App.Current.Resources;
+            rd.MergedDictionaries.Add(langRd);
+
+            // debug
+            /*
+            string rst = "";
+            foreach (ResourceDictionary item in rd.MergedDictionaries)
+            {
+                rst += item.Source.ToString() + "\n";
+            }
+            MessageBox.Show(rst);
+            */
+        }
+
     }
 }

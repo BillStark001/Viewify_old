@@ -11,6 +11,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Controls;
 using Xceed.Wpf.Toolkit;
 using System.IO;
+using System.Windows.Media;
 
 namespace Viewify.Controls
 {
@@ -157,7 +158,7 @@ namespace Viewify.Controls
                     }
                     else
                     {
-                        var c0 = new Label() { Content = subRec.DisplayName ?? subRec.Name };
+                        var c0 = new Label() { Content = subRec.TryLocalizeDisplayName() };
                         var c1 = makeSubRec(subRec);
                         innerGroup.Children.Add(c0);
                         innerGroup.Children.Add(c1);
@@ -183,7 +184,7 @@ namespace Viewify.Controls
                     {
                         HorizontalAlignment = HorizontalAlignment.Stretch,
                         Content = innerGroup,
-                        Header = new Label() { Content = rec.DisplayName ?? rec.Name },
+                        Header = new Label() { Content = rec.TryLocalizeDisplayName2() },
                     };
                     return g;
                 }
@@ -192,7 +193,7 @@ namespace Viewify.Controls
             {
                 var ex = new Expander()
                 {
-                    Header = new Label() { Content = rec.DisplayName ?? rec.Name },
+                    Header = new Label() { Content = rec.TryLocalizeDisplayName2() },
                     Content = innerGroup,
                 };
                 return ex;
@@ -227,7 +228,7 @@ namespace Viewify.Controls
                 {
                     var robj = new RadioButton()
                     {
-                        Content = eobj.Description ?? eobj.StringKey ?? $"#{eobj.Id}",
+                        Content = eobj.TryLocalizeDescription(),
                         Height = 20,
                     };
                     if (dr.TryGetValue(eobj.Id, out var _))
@@ -254,7 +255,7 @@ namespace Viewify.Controls
                 {
                     var cobj = new ComboBoxItem()
                     {
-                        Content = eobj.Description ?? eobj.StringKey ?? $"#{eobj.Id}",
+                        Content = eobj.TryLocalizeDescription(),
                     };
                     if (dr.TryGetValue(eobj.Id, out var _))
                         throw new InvalidDataException($"Repeated Enum ID: #{eobj.Id}");
