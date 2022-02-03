@@ -9,7 +9,8 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <ctrls:ConfigPanel
-            x:Name="ThePanel">
+            x:Name="ThePanel"
+            DisplayError="True">
             
         </ctrls:ConfigPanel>
     </Grid>

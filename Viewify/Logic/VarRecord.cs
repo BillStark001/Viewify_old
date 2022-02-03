@@ -183,6 +183,8 @@ namespace Viewify.Logic
 
         public static VarRecord? Deserialize(string rcs)
         {
+            if (string.IsNullOrWhiteSpace(rcs))
+                return null;
             return (VarRecord?) JsonConvert.DeserializeObject(rcs, typeof(VarRecord));
         }
     }

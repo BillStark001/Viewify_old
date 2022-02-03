@@ -34,6 +34,13 @@ namespace Viewify.Controls
                 })
             );
 
+        public static readonly DependencyProperty DisplayErrorProperty = DependencyProperty.Register(
+                "DisplayError", typeof(bool), typeof(ConfigPanel),
+                new((d, e) => {
+                    // do nothing
+                })
+            );
+
         /// <summary>
         /// requires manual refresh
         /// </summary>
@@ -42,11 +49,38 @@ namespace Viewify.Controls
             get { return (string?) GetValue(InputJsonProperty); }
             set { SetValue(InputJsonProperty, value); }
         }
+        public bool DisplayError
+        {
+            get { var r = (bool?) GetValue(DisplayErrorProperty);  return r != null ? r.Value : false; }
+            set { SetValue(DisplayErrorProperty, value);}
+        }
 
         // record related
 
+        void DisplayErrorMessage(string str)
+        {
+            BaseControl.Children.Clear();
+            var rtb = new RichTextBox
+            {
+                IsReadOnly = true, 
+            };
+            rtb.AppendText(str);
+            BaseControl.Children.Add(rtb);
+        }
+
+        public Exception? LastException { get; private set; } = null;
+        public bool HasFunctionalUI { get; private set; } = false;
+
+        public void RefreshWiththrow()
+        {
+            Refresh();
+            if (!HasFunctionalUI)
+                throw LastException ?? new InvalidOperationException("UI refreshing failed with unknown reason.");
+        }
+
         public void Refresh()
         {
+            HasFunctionalUI = false;
             try
             {
                 RootRecord = VarRecordUtils.Deserialize(InputJson ?? "");
@@ -60,38 +94,30 @@ namespace Viewify.Controls
                     _dataTypes.Clear();
                     _enumContainer.Clear();
                     BaseControl.Children.Add(ParseRecord(RootRecord));
+                    LastException = null;
+                    HasFunctionalUI = true;
                 }
                 else
                 {
-                    BaseControl.Children.Add(new TextBlock()
-                    {
-                        Text = "A VarRecord of value null is assigned. "
-                    });
+                    var errTxt = "A VarRecord of value null is assigned.".TryLocalize();
+                    if (DisplayError)
+                        DisplayErrorMessage(errTxt);
+                    LastException = new InvalidOperationException(errTxt);
                 }
             }
-            catch (FileNotFoundException e)
+            catch (Exception e)
             {
-                Trace.WriteLine("An error occured while refreshing the panel:");
+                LastException = e;
+                var errTxt = "An error occured while refreshing the panel:".TryLocalize();
                 Trace.WriteLine(e);
-                BaseControl.Children.Clear();
-                BaseControl.Children.Add(new TextBlock()
-                {
-                    Text = "An error occured while refreshing the panel:"
-                });
-                BaseControl.Children.Add(new TextBlock()
-                {
-                    Text = e.ToString()
-                });
+                if (DisplayError)
+                    DisplayErrorMessage(errTxt + "\n" + e.ToString());
             }
         }
 
-        private VarRecord? _rootRecord;
         public VarRecord? RootRecord
         {
-            get { return _rootRecord; }
-            set {
-                _rootRecord = value;
-            }
+            get; private set;
         }
 
         private readonly Dictionary<int, (Func<object?>, Action<object?>)> _dataExchange = new(); // getter, setter
@@ -111,7 +137,6 @@ namespace Viewify.Controls
         {
             if (val != null)
                 _enumFetcher[name] = val;
-            // TODO
             if (_enumContainer.TryGetValue(name, out var wrapped))
             {
                 var rc = wrapped.Item1;
@@ -120,10 +145,9 @@ namespace Viewify.Controls
                 panel.Children.Clear();
                 var (reten, gen, sen) = ControlUtils.MakeEnum(isRadio, _enumFetcher.GetValueOrDefault(name, new List<EnumValue>()));
                 TryRegisterNewData(rc.Id, rpath, rc.ParameterType, gen, sen, ignoreCheck);
-                // _dataExchange[rc.Id] = (gen, sen);
                 panel.Children.Add(reten);
             }
-            // else do nothing?
+            // else do nothing
         }
 
         // values
@@ -202,8 +226,7 @@ namespace Viewify.Controls
         public void TryRegisterNewData(int id, string? rpath, ParameterType type, Func<object?> getter, Action<object?> setter, bool ignoreCheck = false)
         {
             // check conflict
-            if (ignoreCheck)
-                ignoreCheck = true; // do nothing
+            if (ignoreCheck) { /* do nothing */ }
             else if (_dataExchange.ContainsKey(id))
                 throw new InvalidDataException($"Repeated ID: #{id} at {type}${rpath} & {_dataTypes[id]}${(_reverseCtrlMapping.TryGetValue(id, out var n) ? n : "[Anonymous]")}");
             else if (!string.IsNullOrWhiteSpace(rpath) && _ctrlMapping.TryGetValue(rpath, out var rid))
@@ -358,7 +381,7 @@ namespace Viewify.Controls
                         ret = new GroupBox()
                         {
                             Content = elemhs,
-                            Header = rc.DisplayName,
+                            Header = rc.TryLocalizeDisplayName2(),
                         };
                     }
                     else
