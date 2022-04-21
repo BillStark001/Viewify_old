@@ -1,35 +1,33 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <UseWPF>true</UseWPF>
-	<Authors>Bill Stark</Authors>
-	<Company>CoronaDevs</Company>
-	<AssemblyName>Viewify</AssemblyName>
-	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<FileVersion></FileVersion>
-	<Version>0.0.4</Version>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Update="Controls\ConfigPanel.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Controls\ConfigPanel.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
+		<Authors>Bill Stark</Authors>
+		<Company>CoronaDevs</Company>
+		<AssemblyName>Viewify</AssemblyName>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<FileVersion></FileVersion>
+		<Version>0.0.5</Version>
+	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+		<Compile Update="Controls\ConfigPanel.xaml.cs">
+			<SubType>Code</SubType>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Page Update="Controls\ConfigPanel.xaml">
+			<SubType>Designer</SubType>
+		</Page>
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" />
-		<PackageReference Include="Microsoft.Windows.Compatibility" Version="3.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 	</ItemGroup>
-	
+
 </Project>

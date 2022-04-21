@@ -16,7 +16,8 @@ using System.Windows.Shapes;
 namespace Viewify.Controls
 {
     /// <summary>
-    /// NumericUpDown.xaml 的交互逻辑
+    /// NumericUpDown.xaml 's interactive logic
+    /// Partially referred from this page: https://www.codeproject.com/Articles/139629/A-Numeric-Up-Down-Control-for-WPF
     /// </summary>
     public partial class NumericUpDown : UserControl
     {

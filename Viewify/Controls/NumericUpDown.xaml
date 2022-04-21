@@ -5,31 +5,37 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Viewify.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid MinWidth="50">
+             d:DesignHeight="20" d:DesignWidth="100"
+             MinWidth="40" MinHeight="20">
+    <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="20"></ColumnDefinition>
+            <ColumnDefinition Width="18"></ColumnDefinition>
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
         <TextBox x:Name="ValueInput"
                  TextAlignment="Right"
                  Grid.Column="0"
+                 Grid.RowSpan="2"
                  KeyUp="ValueInput_KeyUp"
                  LostFocus="ValueInput_LostFocus">
-            
         </TextBox>
-        <StackPanel Grid.Column="1"
-                    Orientation="Vertical"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch">
-            <Button x:Name="Increase"
-                    Click="Increase_Click">
-                <Image Source="Images/up.png" Height="3" Width="5"  />
-            </Button>
-            <Button x:Name="Decrease" 
-                    Click="Decrease_Click">
-                <Image Source="Images/down.png" Height="3" Width="5" />
-            </Button>
-        </StackPanel>
+        <Button x:Name="Increase"
+                Grid.Column="1"
+                Grid.Row="0"
+                Click="Increase_Click">
+            <Image Source="../Resources/up.png" 
+                   Height="4" Width="8" Stretch="Fill"  />
+        </Button>
+        <Button x:Name="Decrease" 
+                Grid.Column="1"
+                Grid.Row="1"
+                Click="Decrease_Click">
+            <Image Source="../Resources/down.png" 
+                   Height="4" Width="8" Stretch="Fill" />
+        </Button>
     </Grid>
 </UserControl>
