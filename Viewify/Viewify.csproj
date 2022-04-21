@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
 	<Authors>Bill Stark</Authors>
@@ -26,7 +26,6 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Extended.Wpf.Toolkit" Version="4.2.0" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
 		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" />
 		<PackageReference Include="Microsoft.Windows.Compatibility" Version="3.0.0" />

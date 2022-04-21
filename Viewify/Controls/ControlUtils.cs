@@ -9,7 +9,6 @@ using Viewify;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Controls;
-using Xceed.Wpf.Toolkit;
 using System.IO;
 using System.Windows.Media;
 
@@ -17,7 +16,31 @@ namespace Viewify.Controls
 {
     public static class ControlUtils
     {
-        
+
+        public static string ReserveDigit(this double value, int digit = 3, bool round = false, bool fill = false)
+        {
+            if (digit == 0)
+                return (round ? (long)(value > 0 ? value + 0.5 : value - 0.5) : (long)value).ToString();
+            else if (digit > 0)
+            {
+                double delta = round ? 0 : 0.5 * Math.Pow(10, -digit);
+                var ret = Math.Round((decimal)(value - delta), digit, MidpointRounding.AwayFromZero);
+                return fill ? ret.ToString($"n{digit}") : ret.ToString();
+            }
+            else
+            {
+                var ndigit = -digit;
+                long exp = (long)Math.Pow(10, ndigit);
+                long i = value >= 0 ? (long)value : (long)-value;
+                var div = (i / exp) * exp;
+                var mod = i % exp;
+                if (!round || mod < exp / 2)
+                    return (value >= 0 ? div : -div).ToString();
+                else
+                    return (value >= 0 ? div + exp : -div - exp).ToString();
+            }
+        }
+
         public static string PathCombine(string parent, string? child)
         {
             if (parent == null)
@@ -44,44 +67,36 @@ namespace Viewify.Controls
             UIElement textInput;
             ScrollBar? sb = null;
             UIElement ret;
+            // initialize input box control
+            var realInput = new NumericUpDown()
+            {
+                MinWidth = 120,
+                MaxWidth = 200,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Width = double.NaN,
+            };
+            if (def != null)
+            {
+                realInput.Maximum = (double)def.Value.Item3;
+                realInput.Minimum = (double)def.Value.Item2;
+                realInput.Value = (double)def.Value.Item1;
+            }
+            else
+                realInput.Value = 0;
             if (isInteger)
             {
-                var iud = new IntegerUpDown()
-                {
-                    MinWidth = 120,
-                    MaxWidth = 200,
-                    HorizontalAlignment = HorizontalAlignment.Left,
-                    Width = double.NaN, 
-                };
-                if (def != null)
-                {
-                    iud.Maximum = (int)def.Value.Item3;
-                    iud.Minimum = (int)def.Value.Item2;
-                    iud.Value = (int)def.Value.Item1;
-                }
-                else
-                    iud.Value = 0;
-                textInput = iud;
+                realInput.MaxReservedDigit = 0;
+                realInput.RoundDisplay = true;
+                realInput.FillDisplay = false;
             }
             else
             {
-                var nud = new DoubleUpDown()
-                {
-                    MinWidth = 120,
-                    MaxWidth = 200,
-                    HorizontalAlignment = HorizontalAlignment.Left,
-                    Width = double.NaN,
-                };
-                if (def != null)
-                {
-                    nud.Maximum = (double)def.Value.Item3;
-                    nud.Minimum = (double)def.Value.Item2;
-                    nud.Value = (double)def.Value.Item1;
-                }
-                else
-                    nud.Value = 0;
-                textInput = nud;
+                realInput.MaxReservedDigit = 12;
+                realInput.RoundDisplay = true;
+                realInput.FillDisplay = false;
             }
+            textInput = realInput;
+
             if (withBar && def != null)
             {
                 var (defv, min, max) = def.Value;
@@ -95,15 +110,15 @@ namespace Viewify.Controls
                     MinWidth = 60,
                     Height = 22, 
                 };
-                if (textInput is IntegerUpDown iud)
+                if (isInteger)
                 {
-                    iud.ValueChanged += (_, __) => { sb.Value = iud.Value ?? (double)defv; };
-                    sb.ValueChanged += (_, __) => { iud.Value = (int)sb.Value; };
+                    realInput.ValueChanged += (_, __) => { sb.Value = realInput.RoundedIntValue; };
+                    sb.ValueChanged += (_, __) => { realInput.Value = (int)sb.Value; };
                 }
-                else if (textInput is DoubleUpDown nud)
+                else
                 {
-                    nud.ValueChanged += (_, __) => { sb.Value = nud.Value ?? (double)defv; };
-                    sb.ValueChanged += (_, __) => { nud.Value = (double)sb.Value; };
+                    realInput.ValueChanged += (_, __) => { sb.Value = realInput.Value; };
+                    sb.ValueChanged += (_, __) => { realInput.Value = (double)sb.Value; };
                 }
                 var rets = new DockPanel()
                 {
@@ -124,16 +139,15 @@ namespace Viewify.Controls
             }
             Func<object?> g;
             Action<object?> s;
-            if (textInput is IntegerUpDown iud2)
+            if (isInteger)
             {
-                g = () => iud2.Value ?? (int)defdefv;
-                s = (x) => { var xi = ValueUtils.ParseInt(x);  iud2.Value = xi; if (sb != null) sb.Value = xi; };
+                g = () => realInput.RoundedIntValue;
+                s = (x) => { var xi = ValueUtils.ParseInt(x); realInput.Value = xi; if (sb != null) sb.Value = xi; };
             }
             else
             {
-                var nud2 = (DoubleUpDown)textInput;
-                g = () => nud2.Value ?? (double)defdefv;
-                s = (x) => { var xd = ValueUtils.ParseDouble(x); nud2.Value = xd; if (sb != null) sb.Value = xd;  };
+                g = () => realInput.Value;
+                s = (x) => { var xd = ValueUtils.ParseDouble(x); realInput.Value = xd; if (sb != null) sb.Value = xd; };
             }
             return (ret, g, s);
         }

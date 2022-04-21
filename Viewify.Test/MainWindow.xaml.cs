@@ -49,6 +49,8 @@ namespace Viewify
                         ControlType = ControlType.WithMargin,
                         SubControls = new()
                         {
+                            new() { Id = 114514, Name = "testUpDown", ParameterType = ParameterType.Int, ControlType = ControlType.ScrollBar, DefaultNumber = (0, -100, 100) },
+                            new() { Id = 1919810, Name = "testUpDown2", ParameterType = ParameterType.Decimal, ControlType = ControlType.ScrollBar, DefaultNumber = (0, -100, 100) },
                             new() { Id = 16, Name = "clearModCache", ParameterType = ParameterType.Bool, Description = "01. Clear Mod Cache", },
                             new() { Id = 17, Name = "clearCache", ParameterType = ParameterType.Bool, Description = "02. Clear Cache", },
 
@@ -97,7 +99,7 @@ namespace Viewify
                             },
                             new()
                             {
-                                Id = 2,
+                                Id = 3,
                                 Name = "skudefName",
                                 ParameterType = ParameterType.String,
                             },
