@@ -401,6 +401,11 @@ namespace Viewify.Controls
                     throw new NotImplementedException();
             }
 
+            if (ret != null && !string.IsNullOrWhiteSpace(rc.StyleStr))
+            {
+
+            }
+
             if (ret == null || (doRegister && (g == null || s == null)))
                 throw new InvalidOperationException();
             if (doRegister)

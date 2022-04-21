@@ -104,9 +104,11 @@ namespace Viewify.Logic
         [JsonProperty("id")]
         public int Id { get; set; }
 
+        [JsonIgnore]
+        private string? _name;
+
         [JsonProperty("name")]
         [JsonConverter(typeof(StringConverterWithCheck))]
-        private string? _name;
         public string? Name
         {
             get { return _name; }
@@ -122,6 +124,9 @@ namespace Viewify.Logic
         public ParameterType ParameterType { get; set; } = ParameterType.String;
         [JsonProperty("ctrlType")]
         public ControlType ControlType { get; set; } = ControlType.Default;
+
+        [JsonProperty("style")]
+        public string? StyleStr { get; set; }
 
         // vals
 
