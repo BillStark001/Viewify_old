@@ -5,7 +5,7 @@ using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Viewify.Logic
+namespace Viewify.Base
 {
     public enum ParameterType
     {

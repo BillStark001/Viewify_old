@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Viewify.Controls
+namespace Viewify.Params
 {
     /// <summary>
     /// NumericUpDown.xaml 's interactive logic

@@ -12,8 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Viewify.Logic;
-using Viewify.Controls;
+using Viewify.Base;
+using Viewify.Params;
 using System.Diagnostics;
 
 namespace Viewify
@@ -151,6 +151,9 @@ namespace Viewify
                 Trace.WriteLine(ValueUtils.Serialize2(vs));
                 ThePanel.SetValues(vs);
             });
+
+            ThePanel.SetControlEnablement(22, false);
+            ThePanel.SetControlEnablement(1919810, false);
         }
 
         public static void Language_Flush(int new_lang_index)

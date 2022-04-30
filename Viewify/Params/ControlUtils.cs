@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Viewify.Logic;
+using Viewify.Base;
 using Viewify;
 using System.Windows;
 using System.Windows.Controls.Primitives;
@@ -12,7 +12,7 @@ using System.Windows.Controls;
 using System.IO;
 using System.Windows.Media;
 
-namespace Viewify.Controls
+namespace Viewify.Params
 {
     public static class ControlUtils
     {

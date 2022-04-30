@@ -14,13 +14,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Update="Controls\ConfigPanel.xaml.cs">
+		<Compile Update="Params\ConfigPanel.xaml.cs">
 			<SubType>Code</SubType>
 		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-		<Page Update="Controls\ConfigPanel.xaml">
+		<Page Update="Params\ConfigPanel.xaml">
 			<SubType>Designer</SubType>
 		</Page>
 	</ItemGroup>

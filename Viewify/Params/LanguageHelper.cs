@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using Viewify.Logic;
+using Viewify.Base;
 
-namespace Viewify.Controls
+namespace Viewify.Params
 {
     public static class LanguageHelper
     {

@@ -15,9 +15,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Viewify;
-using Viewify.Logic;
+using Viewify.Base;
 
-namespace Viewify.Controls
+namespace Viewify.Params
 {
     /// <summary>
     /// ConfigPanel.xaml 的交互逻辑
@@ -78,17 +78,18 @@ namespace Viewify.Controls
                 throw LastException ?? new InvalidOperationException("UI refreshing failed with unknown reason.");
         }
 
-        public void Refresh()
+        public void Refresh(VarRecord? record = null)
         {
             HasFunctionalUI = false;
             try
             {
-                RootRecord = VarRecordUtils.Deserialize(InputJson ?? "");
+                RootRecord = record ?? VarRecordUtils.Deserialize(InputJson ?? "");
                 Trace.WriteLine("RootRecord loaded");
                 BaseControl.Children.Clear();
                 if (RootRecord != null)
                 {
                     _dataExchange.Clear();
+                    _enableMapping.Clear();
                     _ctrlMapping.Clear();
                     _reverseCtrlMapping.Clear();
                     _dataTypes.Clear();
@@ -121,6 +122,7 @@ namespace Viewify.Controls
         }
 
         private readonly Dictionary<int, (Func<object?>, Action<object?>)> _dataExchange = new(); // getter, setter
+        private readonly Dictionary<int, (Func<bool>, Action<bool>)> _enableMapping = new();
         private readonly Dictionary<int, ParameterType> _dataTypes = new();
         private readonly Dictionary<string, Action> _oprs = new();
         private readonly Dictionary<string, int> _ctrlMapping = new();
@@ -144,7 +146,7 @@ namespace Viewify.Controls
                 var isRadio = rc.ControlType == ControlType.Radio;
                 panel.Children.Clear();
                 var (reten, gen, sen) = ControlUtils.MakeEnum(isRadio, _enumFetcher.GetValueOrDefault(name, new List<EnumValue>()));
-                TryRegisterNewData(rc.Id, rpath, rc.ParameterType, gen, sen, ignoreCheck);
+                TryRegisterNewData(rc.Id, rpath, rc.ParameterType, reten, gen, sen, ignoreCheck);
                 panel.Children.Add(reten);
             }
             // else do nothing
@@ -221,9 +223,58 @@ namespace Viewify.Controls
             }
         }
 
+        // enable/disable related
+
+        public bool IsControlEnabled(int id)
+        {
+            if (_enableMapping.TryGetValue(id, out var v))
+            {
+                return v.Item1();
+            }
+            return false;
+        }
+
+        public void SetControlEnablement(int id, bool value)
+        {
+            if (_enableMapping.TryGetValue(id, out var v))
+            {
+                v.Item2(value);
+            }
+        }
+
+        public bool IsControlEnabled(string path)
+        {
+            return _ctrlMapping.TryGetValue(path, out var v) && IsControlEnabled(v);
+        }
+
+        public void SetControlEnablement(string path, bool value)
+        {
+            if (_ctrlMapping.TryGetValue(path, out var v))
+                SetControlEnablement(v, value);
+        }
+
+        public Dictionary<int, bool> GetEnablements()
+        {
+            Dictionary<int, bool> ret = new();
+            foreach (var (k, (g, s)) in _enableMapping)
+                ret[k] = g();
+            return ret;
+        }
+
+        public void SetEnablements(Dictionary<int, bool> enbIn, bool enbDefault = true)
+        {
+            foreach (var (k, (g, s)) in _enableMapping)
+            {
+                if (enbIn.TryGetValue(k, out var v))
+                    s(v);
+                else
+                    s(enbDefault);
+            }
+        }
+
         // record related
 
-        public void TryRegisterNewData(int id, string? rpath, ParameterType type, Func<object?> getter, Action<object?> setter, bool ignoreCheck = false)
+        public void TryRegisterNewData(int id, string? rpath, ParameterType type, UIElement element, Func<object?> getter, Action<object?> setter, bool ignoreCheck = false)
         {
             // check conflict
             if (ignoreCheck) { /* do nothing */ }
@@ -240,6 +291,10 @@ namespace Viewify.Controls
             }
 
             _dataExchange[id] = (getter, setter);
+            _enableMapping[id] = (
+                () => element.IsEnabled,
+                (x) => element.IsEnabled = x
+            );
         }
 
         public UIElement ParseRecord(VarRecord rc, string path = "")
@@ -248,6 +303,8 @@ namespace Viewify.Controls
 
             Func<object?>? g = null;
             Action<object?>? s = null;
+            Func<bool>? ge = null;
+            Action<bool>? se = null;
             bool doRegister = false;
             UIElement? ret = null;
 
@@ -298,6 +355,7 @@ namespace Viewify.Controls
                                 ev.Id,
                                 ControlUtils.PathCombine(path, ev.StringKey ?? $"#ID{ev.Id}"), 
                                 rc.ParameterType, 
+                                reten,
                                 () =>
                                 {
                                     return ValueUtils.ParseInt(gen()) == ev.Id;
@@ -409,7 +467,7 @@ namespace Viewify.Controls
             if (ret == null || (doRegister && (g == null || s == null)))
                 throw new InvalidOperationException();
             if (doRegister)
-                TryRegisterNewData(rc.Id, rpath, rc.ParameterType, g!, s!);
+                TryRegisterNewData(rc.Id, rpath, rc.ParameterType, ret, g!, s!);
            
             return ret;
             

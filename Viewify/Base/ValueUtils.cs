@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Viewify.Logic
+namespace Viewify.Base
 {
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public record ValueRecord
