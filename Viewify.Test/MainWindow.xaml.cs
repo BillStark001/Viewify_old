@@ -12,9 +12,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Markup;
 using Viewify.Base;
 using Viewify.Params;
 using System.Diagnostics;
+using System.IO;
 
 namespace Viewify
 {
@@ -26,6 +28,17 @@ namespace Viewify
         public MainWindow()
         {
             InitializeComponent();
+            var m = XamlReader.Parse(File.ReadAllText("./App.xaml"));
+            var md = m as ResourceDictionary;
+            Dictionary<string, Style> styles = new();
+
+            foreach (var k in md.Keys.Cast<string>())
+            {
+                var mdk = md[k] as Style;
+                if (mdk != null)
+                    styles[k] = mdk;
+            }
+            
             var c = new VarRecord()
             {
                 Name = "root",
@@ -52,7 +65,7 @@ namespace Viewify
                             new() { Id = 114514, Name = "testUpDown", ParameterType = ParameterType.Int, ControlType = ControlType.ScrollBar, DefaultNumber = (0, -100, 100) },
                             new() { Id = 1919810, Name = "testUpDown2", ParameterType = ParameterType.Decimal, ControlType = ControlType.ScrollBar, DefaultNumber = (0, -100, 100) },
                             new() { Id = 16, Name = "clearModCache", ParameterType = ParameterType.Bool, Description = "01. Clear Mod Cache", },
-                            new() { Id = 17, Name = "clearCache", ParameterType = ParameterType.Bool, Description = "02. Clear Cache", },
+                            new() { Id = 17, Name = "clearCache", ParameterType = ParameterType.Bool, Description = "02. Clear Cache" },
 
                             new() { Id = 18, Name = "buildAptUi", ParameterType = ParameterType.Bool, Description = "03. Build Apt UI File", },
                             new()
@@ -102,6 +115,7 @@ namespace Viewify
                                 Id = 3,
                                 Name = "skudefName",
                                 ParameterType = ParameterType.String,
+                                StyleStr = "CoronaTextBoxBaseStyle"
                             },
                         }, 
                     }, 
@@ -128,6 +142,8 @@ namespace Viewify
             var cs = VarRecordUtils.Serialize(c);
             Trace.WriteLine(cs);
             var c2 = VarRecordUtils.Deserialize(cs);
+
+            ThePanel.StyleStore = styles;
             ThePanel.InputJson = cs;
 
 

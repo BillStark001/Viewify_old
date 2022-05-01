@@ -55,6 +55,10 @@ namespace Viewify.Params
             set { SetValue(DisplayErrorProperty, value);}
         }
 
+
+        // TODO!!!!!!!!
+        public Dictionary<string, Style> StyleStore = new();
+
         // record related
 
         void DisplayErrorMessage(string str)
@@ -274,7 +278,7 @@ namespace Viewify.Params
 
         // record related
 
-        public void TryRegisterNewData(int id, string? rpath, ParameterType type, UIElement element, Func<object?> getter, Action<object?> setter, bool ignoreCheck = false)
+        public void TryRegisterNewData(int id, string? rpath, ParameterType type, FrameworkElement element, Func<object?> getter, Action<object?> setter, bool ignoreCheck = false)
         {
             // check conflict
             if (ignoreCheck) { /* do nothing */ }
@@ -297,7 +301,7 @@ namespace Viewify.Params
             );
         }
 
-        public UIElement ParseRecord(VarRecord rc, string path = "")
+        public FrameworkElement ParseRecord(VarRecord rc, string path = "")
         {
             var rpath = ControlUtils.PathCombine(path, rc.Name);
 
@@ -306,7 +310,7 @@ namespace Viewify.Params
             Func<bool>? ge = null;
             Action<bool>? se = null;
             bool doRegister = false;
-            UIElement? ret = null;
+            FrameworkElement? ret = null;
 
                 
             switch (rc.ParameterType)
@@ -461,7 +465,8 @@ namespace Viewify.Params
 
             if (ret != null && !string.IsNullOrWhiteSpace(rc.StyleStr))
             {
-
+                if (StyleStore.TryGetValue(rc.StyleStr, out var style))
+                    ret.Style = style;
             }
 
             if (ret == null || (doRegister && (g == null || s == null)))

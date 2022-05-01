@@ -58,15 +58,15 @@ namespace Viewify.Params
             return parent + '.' + child;
         }
 
-        public static (UIElement, Func<object?>, Action<object?>) MakeDecimalBox(VarRecord rec, uint numDigit = 0)
+        public static (FrameworkElement, Func<object?>, Action<object?>) MakeDecimalBox(VarRecord rec, uint numDigit = 0)
         {
             var withBar = rec.ControlType == ControlType.ScrollBar;
             var isInteger = rec.ParameterType == ParameterType.Int;
             var def = rec.DefaultNumber;
             decimal defdefv = def != null ? def.Value.Item1 : 0;
-            UIElement textInput;
+            FrameworkElement textInput;
             ScrollBar? sb = null;
-            UIElement ret;
+            FrameworkElement ret;
             // initialize input box control
             var realInput = new NumericUpDown()
             {
@@ -153,7 +153,7 @@ namespace Viewify.Params
         }
 
 
-        public static UIElement MakeGroup(VarRecord rec, Func<VarRecord, UIElement> makeSubRec, bool collapsible, bool withMargin)
+        public static FrameworkElement MakeGroup(VarRecord rec, Func<VarRecord, FrameworkElement> makeSubRec, bool collapsible, bool withMargin)
         {
             var innerGroup = new Grid();
             
@@ -214,7 +214,7 @@ namespace Viewify.Params
             }
         }
 
-        public static (UIElement, Func<object?>, Action<object?>) MakeEnum(VarRecord rec)
+        public static (FrameworkElement, Func<object?>, Action<object?>) MakeEnum(VarRecord rec)
         {
             var isVar = rec.ParameterType == ParameterType.EnumVar;
             var isRadio = rec.ControlType == ControlType.Radio;
@@ -222,13 +222,13 @@ namespace Viewify.Params
             return MakeEnum(isRadio, ev);
         }
 
-        public static (UIElement, Func<object?>, Action<object?>) MakeEnum(bool isRadio, IEnumerable<EnumValue>? enumValuesIn)
+        public static (FrameworkElement, Func<object?>, Action<object?>) MakeEnum(bool isRadio, IEnumerable<EnumValue>? enumValuesIn)
         {
             List<EnumValue> enumValues = enumValuesIn != null ? new(enumValuesIn) : new();
             if (enumValues.Count == 0)
                 enumValues.Add(new(0, ""));
 
-            UIElement ret;
+            FrameworkElement ret;
             int currentId = enumValues[0].Id;
             Func<object?> getterFunc = () => currentId;
             Action<object?> setterFunc;
