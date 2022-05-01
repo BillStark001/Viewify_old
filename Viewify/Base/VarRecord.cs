@@ -5,6 +5,7 @@ using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
 using Viewify.Params;
+using Newtonsoft.Json.Converters;
 
 namespace Viewify.Base
 {
@@ -71,7 +72,6 @@ namespace Viewify.Base
         
     }
 
-
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public record VarRecord
     {
@@ -112,9 +112,13 @@ namespace Viewify.Base
 
         [JsonProperty("desc")]
         public string? Description { get; set; }
+
         [JsonProperty("paramType")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public ParameterType ParameterType { get; set; } = ParameterType.String;
+
         [JsonProperty("ctrlType")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public ControlType ControlType { get; set; } = ControlType.Default;
 
         [JsonProperty("style")]
@@ -147,7 +151,7 @@ namespace Viewify.Base
     {
         public static string Serialize(VarRecord rc)
         {
-            return JsonConvert.SerializeObject(rc, new Newtonsoft.Json.Converters.StringEnumConverter());
+            return JsonConvert.SerializeObject(rc);
         }
 
         public static VarRecord? Deserialize(string rcs)
