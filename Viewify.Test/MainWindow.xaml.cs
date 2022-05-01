@@ -70,6 +70,7 @@ namespace Viewify
                             new() { Id = 18, Name = "buildAptUi", ParameterType = ParameterType.Bool, Description = "03. Build Apt UI File", },
                             new()
                             {
+                                Id = 4444, 
                                 ParameterType = ParameterType.EnumBool, 
                                 ControlType = ControlType.Radio, 
                                 EnumValues = new()
@@ -150,7 +151,7 @@ namespace Viewify
             
 
 
-            ThePanel.RegisterEnumVar("getModToBuild", new List<EnumValue>()
+            ThePanel.RegisterEnumVar("getModToBuild", new List<EnumRecord>()
             {
                 new(114, "114"), 
                 new(514, "514"), 
@@ -169,7 +170,8 @@ namespace Viewify
             });
 
             ThePanel.SetControlEnablement(22, false);
-            ThePanel.SetControlEnablement(1919810, false);
+            ThePanel.SetControlEnablement(4444, false);
+            ThePanel.SetControlEnablement(8, false);
         }
 
         public static void Language_Flush(int new_lang_index)

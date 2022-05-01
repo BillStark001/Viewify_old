@@ -14,55 +14,54 @@ using System.Windows.Media;
 
 namespace Viewify.Params
 {
-    public static class ControlUtils
+    public class ControlRecord
+    {
+        public FrameworkElement Element { get; }
+        public Func<object?> Getter { get; }
+        public Action<object?> Setter { get; }
+
+        public ControlRecord(FrameworkElement e, Func<object?> g, Action<object?> s)
+        {
+            Element = e;
+            Getter = g;
+            Setter = s;
+        }
+    }
+
+    public static partial class ControlUtils
     {
 
-        public static string ReserveDigit(this double value, int digit = 3, bool round = false, bool fill = false)
+        public static ControlRecord MakeCheckBox(this VarRecord vRec)
         {
-            if (digit == 0)
-                return (round ? (long)(value > 0 ? value + 0.5 : value - 0.5) : (long)value).ToString();
-            else if (digit > 0)
+            var elem = new CheckBox()
             {
-                double delta = round ? 0 : 0.5 * Math.Pow(10, -digit);
-                var ret = Math.Round((decimal)(value - delta), digit, MidpointRounding.AwayFromZero);
-                return fill ? ret.ToString($"n{digit}") : ret.ToString();
-            }
-            else
-            {
-                var ndigit = -digit;
-                long exp = (long)Math.Pow(10, ndigit);
-                long i = value >= 0 ? (long)value : (long)-value;
-                var div = (i / exp) * exp;
-                var mod = i % exp;
-                if (!round || mod < exp / 2)
-                    return (value >= 0 ? div : -div).ToString();
-                else
-                    return (value >= 0 ? div + exp : -div - exp).ToString();
-            }
+                Height = 20,
+                Content = vRec.TryLocalizeDescription(),
+                VerticalAlignment = VerticalAlignment.Stretch,
+            };
+            return new(
+                elem,
+                () => elem.IsChecked ?? false,
+                (x) => elem.IsChecked = ValueUtils.ParseBoolean(x)
+            );
         }
 
-        public static string PathCombine(string parent, string? child)
+        public static ControlRecord MakeTextBox(this VarRecord vRec)
         {
-            if (parent == null)
-                parent = string.Empty;
-            if (child == null)
-                child = string.Empty;
-
-            if (parent.Contains(' ') || child.Contains(' '))
-                throw new InvalidOperationException("Spaces are not allowed in a path.");
-
-            if (string.IsNullOrWhiteSpace(parent))
-                return child;
-            if (string.IsNullOrWhiteSpace(child))
-                child = "#EMPTY";
-            return parent + '.' + child;
+            var elem = new TextBox();
+            return new(
+                elem,
+                () => elem.Text,
+                (x) => elem.Text = ValueUtils.ParseString(x) ?? ""
+            );
         }
 
-        public static (FrameworkElement, Func<object?>, Action<object?>) MakeDecimalBox(VarRecord rec, uint numDigit = 0)
+
+        public static ControlRecord MakeDecimalBox(this VarRecord vRec)
         {
-            var withBar = rec.ControlType == ControlType.ScrollBar;
-            var isInteger = rec.ParameterType == ParameterType.Int;
-            var def = rec.DefaultNumber;
+            var withBar = vRec.ControlType == ControlType.ScrollBar;
+            var isInteger = vRec.ParameterType == ParameterType.Int;
+            var def = vRec.DefaultNumber;
             decimal defdefv = def != null ? def.Value.Item1 : 0;
             FrameworkElement textInput;
             ScrollBar? sb = null;
@@ -108,7 +107,7 @@ namespace Viewify.Params
                     Minimum = (double)min,
                     Maximum = (double)max,
                     MinWidth = 60,
-                    Height = 22, 
+                    Height = 22,
                 };
                 if (isInteger)
                 {
@@ -149,148 +148,30 @@ namespace Viewify.Params
                 g = () => realInput.Value;
                 s = (x) => { var xd = ValueUtils.ParseDouble(x); realInput.Value = xd; if (sb != null) sb.Value = xd; };
             }
-            return (ret, g, s);
+            return new(ret, g, s);
         }
 
-
-        public static FrameworkElement MakeGroup(VarRecord rec, Func<VarRecord, FrameworkElement> makeSubRec, bool collapsible, bool withMargin)
+        // controls
+        public delegate bool TryGetValue<T>(string key, out T? value);
+        public static Button MakeButton(this VarRecord vRec, TryGetValue<Action> getAction)
         {
-            var innerGroup = new Grid();
-            
-            int r = 0;
-            if (rec.SubControls != null)
-                foreach (var subRec in rec.SubControls)
-                {
-                    if (subRec.ParameterType == ParameterType.Separator || 
-                        subRec.ControlType == ControlType.IgnoreFieldInGroup)
-                    {
-                        var c1 = makeSubRec(subRec);
-                        innerGroup.Children.Add(c1);
-                        c1.SetValue(Grid.RowProperty, r);
-                        c1.SetValue(Grid.ColumnProperty, 0);
-                        c1.SetValue(Grid.ColumnSpanProperty, 2);
-                    }
-                    else
-                    {
-                        var c0 = new Label() { Content = subRec.TryLocalizeDisplayName() };
-                        var c1 = makeSubRec(subRec);
-                        innerGroup.Children.Add(c0);
-                        innerGroup.Children.Add(c1);
-                        c0.SetValue(Grid.RowProperty, r);
-                        c0.SetValue(Grid.ColumnProperty, 0);
-                        c1.SetValue(Grid.RowProperty, r);
-                        c1.SetValue(Grid.ColumnProperty, 1);
-                    }
-                    ++r;
-                    innerGroup.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto, MinHeight = 10 });
-                }
+            if (vRec.CommandName == null)
+                throw new InvalidDataException("A 'cmd' string field indicating the command of a Button type is required.");
 
-            innerGroup.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
-            innerGroup.ColumnDefinitions.Add(new ColumnDefinition() { MinWidth = 150 });
-
-            if (!collapsible)
+            var retbutt = new Button()
             {
-                if (!withMargin)
-                    return innerGroup;
-                else
-                {
-                    var g = new GroupBox()
-                    {
-                        HorizontalAlignment = HorizontalAlignment.Stretch,
-                        Content = innerGroup,
-                        Header = new Label() { Content = rec.TryLocalizeDisplayName2() },
-                    };
-                    return g;
-                }
-            }
-            else
+                Content = vRec.TryLocalizeDescription(),
+                Height = 25,
+                Padding = new Thickness(5, 2, 5, 2),
+                HorizontalAlignment = HorizontalAlignment.Left,
+            };
+            retbutt.Click += (_, __) =>
             {
-                var ex = new Expander()
-                {
-                    Header = new Label() { Content = rec.TryLocalizeDisplayName2() },
-                    Content = innerGroup,
-                };
-                return ex;
-            }
+                if (getAction(vRec.CommandName, out var act)
+                && act != null)
+                    act();
+            };
+            return retbutt;
         }
-
-        public static (FrameworkElement, Func<object?>, Action<object?>) MakeEnum(VarRecord rec)
-        {
-            var isVar = rec.ParameterType == ParameterType.EnumVar;
-            var isRadio = rec.ControlType == ControlType.Radio;
-            List<EnumValue>? ev = isVar ? null : rec.EnumValues;
-            return MakeEnum(isRadio, ev);
-        }
-
-        public static (FrameworkElement, Func<object?>, Action<object?>) MakeEnum(bool isRadio, IEnumerable<EnumValue>? enumValuesIn)
-        {
-            List<EnumValue> enumValues = enumValuesIn != null ? new(enumValuesIn) : new();
-            if (enumValues.Count == 0)
-                enumValues.Add(new(0, ""));
-
-            FrameworkElement ret;
-            int currentId = enumValues[0].Id;
-            Func<object?> getterFunc = () => currentId;
-            Action<object?> setterFunc;
-
-            if (isRadio)
-            {
-                StackPanel st = new();
-                
-                Dictionary<int, RadioButton> dr = new();
-                foreach (var eobj in enumValues)
-                {
-                    var robj = new RadioButton()
-                    {
-                        Content = eobj.TryLocalizeDescription(),
-                        Height = 20,
-                    };
-                    if (dr.TryGetValue(eobj.Id, out var _))
-                        throw new InvalidDataException($"Repeated Enum ID: #{eobj.Id}");
-                    dr[eobj.Id] = robj;
-                    st.Children.Add(robj);
-                    robj.Checked += (_, __) => currentId = eobj.Id;
-                }
-                setterFunc = (x) =>
-                {
-                    int xv = ValueUtils.ParseInt(x, currentId);
-                    dr[currentId].IsChecked = false;
-                    currentId = xv;
-                    if (dr.TryGetValue(xv, out var dxv))
-                        dxv.IsChecked = true;
-                };
-                ret = st;
-            }
-            else
-            {
-                ComboBox cb = new();
-                Dictionary<int, ComboBoxItem> dr = new();
-                foreach (var eobj in enumValues)
-                {
-                    var cobj = new ComboBoxItem()
-                    {
-                        Content = eobj.TryLocalizeDescription(),
-                    };
-                    if (dr.TryGetValue(eobj.Id, out var _))
-                        throw new InvalidDataException($"Repeated Enum ID: #{eobj.Id}");
-                    dr[eobj.Id] = cobj;
-                    cb.Items.Add(cobj);
-                    cobj.Selected += (_, __) => currentId = eobj.Id;
-                }
-                setterFunc = (x) =>
-                {
-                    int? xv = ValueUtils.ParseInt(x, currentId);
-                    currentId = xv.Value;
-                    if (dr.TryGetValue(xv.Value, out var dxv))
-                        cb.SelectedItem = dxv;
-                    else
-                        cb.SelectedItem = null;
-                };
-                ret = cb;
-            }
-            setterFunc(currentId);
-            return (ret, getterFunc, setterFunc);
-        }
-
     }
 }

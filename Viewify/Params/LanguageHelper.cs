@@ -54,12 +54,12 @@ namespace Viewify.Params
         {
             return (rc.Description ?? rc.DisplayName ?? rc.Name ?? "").TryLocalize();
         }
-        public static string TryLocalizeDescription(this EnumValue ev)
+        public static string TryLocalizeDescription(this EnumRecord ev)
         {
             return (ev.Description ?? ev.StringKey ?? $"#{ev.Id}").TryLocalize();
         }
 
-        public static string TryLocalizeDescription2(this EnumValue ev)
+        public static string TryLocalizeDescription2(this EnumRecord ev)
         {
             return (ev.Description ?? ev.StringKey ?? "").TryLocalize();
         }

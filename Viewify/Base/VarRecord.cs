@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
+using Viewify.Params;
 
 namespace Viewify.Base
 {
@@ -70,39 +71,14 @@ namespace Viewify.Base
         
     }
 
-    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public record EnumValue
-    {
-        public EnumValue() { }
-
-        public EnumValue(int v1, string v2)
-        {
-            Id = v1;
-            Description = v2;
-        }
-
-        public EnumValue(int v1, string v2, string v3)
-        {
-            Id = v1;
-            StringKey = v2;
-            Description = v3;
-        }
-
-        [JsonProperty("id")]
-        public int Id { get; set; }
-        
-        [JsonProperty("strKey")]
-        public string? StringKey { get; set; }
-
-        [JsonProperty("desc")]
-        public string? Description { get; set; }
-    }
 
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public record VarRecord
     {
+        // keys
+
         [JsonProperty("id")]
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
         [JsonIgnore]
         private string? _name;
@@ -112,8 +88,24 @@ namespace Viewify.Base
         public string? Name
         {
             get { return _name; }
-            set { _name = value; }
+            set {
+                if (!Utils.CheckNameValidity(value))
+                    throw new InvalidDataException($"Invalid Name Property: {value}");
+                _name = value; 
+            }
         }
+
+        [JsonIgnore]
+        public bool IsIdEmpty => Id == null;
+        [JsonIgnore]
+        public bool IsNameEmpty => _name == null;
+
+        public string GetProperPath(string parent)
+        {
+            return Utils.PathCombine(parent, _name ?? (Id != null ? $"#ID{Id}" : null));
+        }
+
+        // basic properties
 
         [JsonProperty("dispName")]
         public string? DisplayName { get; set; }
@@ -141,7 +133,7 @@ namespace Viewify.Base
         // enum related
 
         [JsonProperty("enumVals")]
-        public List<EnumValue>? EnumValues { get; set; }
+        public List<EnumRecord>? EnumValues { get; set; }
 
         // additional
 
@@ -151,36 +143,8 @@ namespace Viewify.Base
         public List<VarRecord>? SubControls { get; set; }
     }
 
-    public class StringConverterWithCheck : JsonConverter<string>
-    {
-        public override void WriteJson(JsonWriter writer, string? value, JsonSerializer serializer)
-        {
-            writer.WriteValue(JsonConvert.SerializeObject(value));
-        }
-
-        public override string? ReadJson(JsonReader reader, Type objectType, string? existingValue, bool hasExistingValue, JsonSerializer serializer)
-        {
-            var s = JsonConvert.DeserializeObject(((string) reader.Value) ?? "null", typeof(string)) as string;
-            if (!VarRecordUtils.CheckNameValidity(s))
-                throw new InvalidDataException($"Invalid Name Property: {reader.Value}");
-            return s;
-        }
-    }
-
     public static class VarRecordUtils
     {
-        public static bool CheckNameValidity(string? s)
-        {
-            if (s == null || s[0] < 'A' || (s[0] > 'Z' && s[0] < 'a') || s[0] > 'z')
-                return false;
-            foreach (char c in s)
-            {
-                if (c < '0' || (c > '9' && c < '@') || (c > 'Z' && c < 'a') || (c > 'z'))
-                    return c == '_';
-            }
-            return true;
-        }
-
         public static string Serialize(VarRecord rc)
         {
             return JsonConvert.SerializeObject(rc, new Newtonsoft.Json.Converters.StringEnumConverter());

@@ -10,7 +10,7 @@
 		<AssemblyName>Viewify</AssemblyName>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<FileVersion></FileVersion>
-		<Version>0.0.6</Version>
+		<Version>0.0.7</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
